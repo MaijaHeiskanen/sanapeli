@@ -1,0 +1,140 @@
+html {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+body {
+	height: 100%;
+	flex-grow: 1;
+	background-color: white;
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+}
+
+#root {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.app {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+
+	--x2letter: #9ad5f5;
+	--x3letter: #0ea2e2;
+	--x2word: #d8b93e;
+	--x3word: #dd3421;
+	--start: #d68924;
+}
+
+.gamearea {
+	flex-grow: 1;
+	background-color: teal;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	> .board {
+		margin-bottom: 2em;
+	}
+}
+
+.board {
+	font-size: 30px;
+
+	padding: 1em;
+	border: 1px solid;
+	max-width: 100%;
+	overflow-x: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.1em;
+
+	> .row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		gap: 0.1em;
+	}
+}
+
+.hand {
+	font-size: 30px;
+
+	border: 1px solid;
+	padding: 0.5em;
+	display: flex;
+	gap: 0.3em;
+}
+
+.tile {
+	aspect-ratio: 1 / 1;
+	border: 1px solid white;
+	padding: 0.3em;
+	display: flex;
+	width: 2rem;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+
+	&.start {
+		--tile-color: var(--x2word);
+	}
+	&.x2word {
+		--tile-color: var(--x2word);
+	}
+	&.x3word {
+		--tile-color: var(--x3word);
+	}
+	&.x2letter {
+		--tile-color: var(--x2letter);
+	}
+	&.x3letter {
+		--tile-color: var(--x3letter);
+	}
+
+	background-color: var(--tile-color);
+
+	> .letter {
+		z-index: 10;
+	}
+
+	.star {
+		fill: var(--start);
+		position: absolute;
+		right: 0;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		z-index: 8;
+	}
+
+	// ::before {
+	// 	content: "";
+	// 	display: block;
+	// 	width: 0;
+	// 	height: 0;
+	// 	position: absolute;
+	// 	border-top: 0.5rem solid transparent;
+	// 	border-bottom: 0.5rem solid transparent;
+	// 	border-right: 0.5rem solid var(--tile-color);
+	// 	left: -0.5rem;
+	// 	top: 1rem;
+	// }
+
+	.rotated-box {
+		display: block;
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		transform: rotate(45deg);
+		background-color: var(--tile-color);
+		z-index: 5;
+		// border: 1px solid white;
+	}
+}
