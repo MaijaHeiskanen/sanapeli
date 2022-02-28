@@ -1,5 +1,7 @@
 import classNames from "classnames";
-import { SpecialTile } from "./Board";
+import React, { ChangeEvent, ForwardedRef, forwardRef, KeyboardEvent, KeyboardEventHandler } from "react";
+import { SpecialTile } from "../enums/SpecialTile";
+import { IBoardTile, ITileCoordinates } from "../react-app-env";
 
 const Star = () => {
 	return (
@@ -46,16 +48,93 @@ const mapSpecialToText = (special?: SpecialTile) => {
 
 export enum LetterState {
 	Invalid = "invalid",
-	Valid = "valid",
+	Focused = "focused",
+	Locked = "valid",
 }
 
-export const Tile = (props: { letter?: string; special?: SpecialTile; transparent?: boolean; state?: LetterState }) => {
+interface TileProps {
+	tile?: IBoardTile;
+	focusedCallback?: (coordinates: ITileCoordinates) => void;
+	blurredCallback?: (coordinates: ITileCoordinates) => void;
+	changedCallback?: (coordinates: ITileCoordinates, value: string | undefined) => void;
+	moveFocus?: (coordinates: ITileCoordinates, direction: ITileCoordinates) => void;
+}
+
+export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, ref: ForwardedRef<HTMLInputElement>) => {
+	const { special, coordinates, tile } = props.tile || {};
+	const { letter, focused, locked, invalid } = tile || {};
+
+	const onTileFocused = () => {
+		if (props.focusedCallback && coordinates) {
+			props.focusedCallback(coordinates);
+		}
+	};
+
+	const onTileBlurred = () => {
+		if (props.blurredCallback && coordinates) {
+			props.blurredCallback(coordinates);
+		}
+	};
+
+	const onTileChanged = (event: ChangeEvent<HTMLInputElement>) => {
+		if (props.changedCallback && coordinates) {
+			let value = event.target.value;
+
+			if (value.length > 1) {
+				value = value[value.length - 1];
+			}
+
+			props.changedCallback(coordinates, value);
+		}
+	};
+
+	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		const keyCode = event.code;
+
+		if (keyCode === "Backspace") {
+			if (props.moveFocus && coordinates) {
+				props.moveFocus(coordinates, { column: -1, row: 0 });
+			}
+		}
+		if (keyCode === "ArrowUp") {
+			if (props.moveFocus && coordinates) {
+				props.moveFocus(coordinates, { column: 0, row: -1 });
+			}
+		}
+		if (keyCode === "ArrowRight") {
+			if (props.moveFocus && coordinates) {
+				props.moveFocus(coordinates, { column: 1, row: 0 });
+			}
+		}
+		if (keyCode === "ArrowLeft") {
+			if (props.moveFocus && coordinates) {
+				props.moveFocus(coordinates, { column: -1, row: 0 });
+			}
+		}
+		if (keyCode === "ArrowDown") {
+			if (props.moveFocus && coordinates) {
+				props.moveFocus(coordinates, { column: 0, row: 1 });
+			}
+		}
+	};
+
+	const isEmpty = !letter;
+
 	return (
-		<span className={classNames("tile", props.special, { transparent: props.transparent })}>
-			{props.special && <div className='rotated-box'></div>}
-			{props.special === SpecialTile.start && <Star />}
-			{mapSpecialToText(props.special)}
-			{props.letter && <span className={classNames("letter")}>{props.letter}</span>}
+		<span className={classNames("tile", special, { focused, locked, invalid, "has-letter": !isEmpty })}>
+			{special && <div className='rotated-box'></div>}
+			{special === SpecialTile.start && <Star />}
+			{mapSpecialToText(special)}
+			<input
+				ref={ref}
+				onKeyDown={onKeyDown}
+				onFocus={onTileFocused}
+				onBlur={onTileBlurred}
+				onChange={onTileChanged}
+				disabled={locked}
+				className={classNames("letter", { focused, locked, invalid, "has-letter": !isEmpty })}
+				value={letter || ""}
+			/>
 		</span>
 	);
-};
+});

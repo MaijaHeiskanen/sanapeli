@@ -1,11 +1,11 @@
 import { Tile } from "./Tile";
 
 export const Hand = () => {
-	const letters = ["A", "A", "A", "A", "A", "A", "A"];
+	const letters = ["A", "E", "A", "R", "T", "I", "G"];
 	return (
 		<div className='hand'>
-			{letters.map((letter) => {
-				return <Tile letter={letter} transparent />;
+			{letters.map((letter, index) => {
+				return <Tile key={index} tile={{ tile: { letter, locked: true } }} />;
 			})}
 		</div>
 	);

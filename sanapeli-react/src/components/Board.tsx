@@ -1,135 +1,122 @@
+import { useEffect, useState } from "react";
+import { Checker } from "../checker/Checker";
+import { createBoard } from "../helpers/createBoard";
+import { setSpecialTiles } from "../helpers/setSpecialTiles";
+import { IBoardTile, ITile, ITileCoordinates } from "../react-app-env";
 import { Tile } from "./Tile";
 
-export const enum SpecialTile {
-	x2letter = "x2letter",
-	x3letter = "x3letter",
-	x2word = "x2word",
-	x3word = "x3word",
-	start = "start",
-}
-
-interface ITile {
-	letter?: string;
-	special?: SpecialTile;
-}
-
 const SIZE = 15;
-const createBoard = () => {
-	const tiles = [];
 
-	for (let i = 0; i < SIZE; i++) {
-		const row = [];
+const forEachTile = (board: IBoardTile[][], f: (tile: IBoardTile) => IBoardTile): IBoardTile[][] => {
+	const newBoard = board.slice();
 
-		for (let ii = 0; ii < SIZE; ii++) {
-			if (i === 3) {
-				row.push({ letter: "B" });
-			} else {
-				row.push({ letter: undefined });
-			}
+	for (let i = 0, len = newBoard.length; i < len; i++) {
+		for (let ii = 0, len2 = newBoard[0].length; ii < len2; ii++) {
+			const tile = newBoard[i][ii];
+			f(tile);
 		}
-
-		tiles.push(row);
 	}
 
-	return tiles;
-};
-const setSpecialTiles = (board: ITile[][]) => {
-	const tilesWithSpecials = board.slice();
-
-	const specials = [
-		// x3word
-		{ column: 0, row: 0, special: SpecialTile.x3word },
-		{ column: 0, row: 7, special: SpecialTile.x3word },
-		{ column: 0, row: 14, special: SpecialTile.x3word },
-		{ column: 7, row: 0, special: SpecialTile.x3word },
-		{ column: 7, row: 14, special: SpecialTile.x3word },
-		{ column: 14, row: 0, special: SpecialTile.x3word },
-		{ column: 14, row: 7, special: SpecialTile.x3word },
-		{ column: 14, row: 14, special: SpecialTile.x3word },
-		// x2word
-		{ column: 1, row: 1, special: SpecialTile.x2word },
-		{ column: 2, row: 2, special: SpecialTile.x2word },
-		{ column: 3, row: 3, special: SpecialTile.x2word },
-		{ column: 4, row: 4, special: SpecialTile.x2word },
-		{ column: 13, row: 1, special: SpecialTile.x2word },
-		{ column: 12, row: 2, special: SpecialTile.x2word },
-		{ column: 11, row: 3, special: SpecialTile.x2word },
-		{ column: 10, row: 4, special: SpecialTile.x2word },
-		{ column: 1, row: 13, special: SpecialTile.x2word },
-		{ column: 2, row: 12, special: SpecialTile.x2word },
-		{ column: 3, row: 11, special: SpecialTile.x2word },
-		{ column: 4, row: 10, special: SpecialTile.x2word },
-		{ column: 10, row: 10, special: SpecialTile.x2word },
-		{ column: 11, row: 11, special: SpecialTile.x2word },
-		{ column: 12, row: 12, special: SpecialTile.x2word },
-		{ column: 13, row: 13, special: SpecialTile.x2word },
-		// x3letter
-		{ column: 1, row: 5, special: SpecialTile.x3letter },
-		{ column: 1, row: 9, special: SpecialTile.x3letter },
-		{ column: 5, row: 1, special: SpecialTile.x3letter },
-		{ column: 5, row: 5, special: SpecialTile.x3letter },
-		{ column: 5, row: 9, special: SpecialTile.x3letter },
-		{ column: 5, row: 13, special: SpecialTile.x3letter },
-		{ column: 9, row: 1, special: SpecialTile.x3letter },
-		{ column: 9, row: 5, special: SpecialTile.x3letter },
-		{ column: 9, row: 9, special: SpecialTile.x3letter },
-		{ column: 9, row: 13, special: SpecialTile.x3letter },
-		{ column: 13, row: 5, special: SpecialTile.x3letter },
-		{ column: 13, row: 9, special: SpecialTile.x3letter },
-		// x2letter
-		{ column: 0, row: 3, special: SpecialTile.x2letter },
-		{ column: 0, row: 11, special: SpecialTile.x2letter },
-		{ column: 2, row: 6, special: SpecialTile.x2letter },
-		{ column: 2, row: 8, special: SpecialTile.x2letter },
-		{ column: 3, row: 0, special: SpecialTile.x2letter },
-		{ column: 3, row: 7, special: SpecialTile.x2letter },
-		{ column: 3, row: 14, special: SpecialTile.x2letter },
-		{ column: 6, row: 2, special: SpecialTile.x2letter },
-		{ column: 6, row: 6, special: SpecialTile.x2letter },
-		{ column: 6, row: 8, special: SpecialTile.x2letter },
-		{ column: 6, row: 12, special: SpecialTile.x2letter },
-		{ column: 7, row: 3, special: SpecialTile.x2letter },
-		{ column: 7, row: 11, special: SpecialTile.x2letter },
-		{ column: 8, row: 2, special: SpecialTile.x2letter },
-		{ column: 8, row: 6, special: SpecialTile.x2letter },
-		{ column: 8, row: 8, special: SpecialTile.x2letter },
-		{ column: 8, row: 12, special: SpecialTile.x2letter },
-		{ column: 11, row: 0, special: SpecialTile.x2letter },
-		{ column: 11, row: 7, special: SpecialTile.x2letter },
-		{ column: 11, row: 14, special: SpecialTile.x2letter },
-		{ column: 12, row: 6, special: SpecialTile.x2letter },
-		{ column: 12, row: 8, special: SpecialTile.x2letter },
-		{ column: 14, row: 3, special: SpecialTile.x2letter },
-		{ column: 14, row: 11, special: SpecialTile.x2letter },
-		// start
-		{ column: 7, row: 7, special: SpecialTile.start },
-	];
-
-	specials.forEach((s) => {
-		const { column, row, special } = s;
-		tilesWithSpecials[row][column].special = special;
-	});
-
-	return tilesWithSpecials;
+	return newBoard;
 };
 
 export const Board = () => {
-	const tiles = setSpecialTiles(createBoard());
+	const [boardTiles, setBoardTiles] = useState<IBoardTile[][]>([[]]);
+
+	useEffect(() => {
+		setBoardTiles(setSpecialTiles(createBoard(SIZE)));
+	}, []);
+
+	const tileFocused = (coordinates: ITileCoordinates) => {
+		const { column, row } = coordinates;
+		const bTiles = forEachTile(boardTiles.slice(), (tile: IBoardTile) => {
+			if (tile.tile) {
+				tile.tile.focused = false;
+			}
+
+			return tile;
+		});
+		const bTile = bTiles[row][column];
+
+		if (bTile && bTile.tile) {
+			bTile.tile.focused = true;
+			setBoardTiles(bTiles);
+		}
+	};
+
+	const tileBlurred = (coordinates: ITileCoordinates) => {
+		const { column, row } = coordinates;
+		const bTiles = boardTiles.slice();
+		const bTile = bTiles[row][column];
+
+		if (bTile && bTile.tile) {
+			bTile.tile.focused = false;
+			setBoardTiles(bTiles);
+		}
+	};
+
+	const tileChanged = (coordinates: ITileCoordinates, value: string | undefined) => {
+		const { column, row } = coordinates;
+		const bTiles = boardTiles.slice();
+		const bTile = bTiles[row][column];
+
+		if (bTile && bTile.tile) {
+			console.log(Checker.checkLetter(value));
+
+			if (!Checker.checkLetter(value)) return;
+
+			console.log({ value });
+
+			bTile.tile.letter = value;
+			setBoardTiles(bTiles);
+
+			if (!value) {
+				const previousColumn = column === 0 ? -1 : column - 1;
+				const previousTile = bTiles[row][previousColumn];
+
+				previousTile?.inputRef?.current?.focus();
+			} else {
+				const nextTile = bTiles[row][column + 1];
+
+				nextTile?.inputRef?.current?.focus();
+			}
+		}
+	};
+
+	const moveFocus = (coordinates: ITileCoordinates, direction: ITileCoordinates) => {
+		const { column, row } = coordinates;
+		const { column: moveColumn, row: moveRow } = direction;
+		const bTiles = boardTiles.slice();
+		const rowLength = bTiles.length - 1;
+		const columnLength = rowLength ? bTiles[0].length - 1 : 0;
+		const newRow = row + moveRow;
+		const focusRow = newRow > rowLength ? (newRow % rowLength) - 1 : newRow < 0 ? rowLength : newRow;
+		const newColumn = column + moveColumn;
+		const focusColumn = newColumn > columnLength ? (newColumn % columnLength) - 1 : newColumn < 0 ? columnLength : newColumn;
+		const focusTile = bTiles[focusRow][focusColumn];
+
+		focusTile?.inputRef?.current?.focus();
+	};
+
 	const boardRows = [];
 
-	for (let i = 0; i < SIZE; i++) {
+	for (let i = 0; i < boardTiles.length; i++) {
 		const row = [];
 
-		for (let ii = 0; ii < SIZE; ii++) {
-			const tile = tiles[i][ii];
-			row.push(<Tile letter={tile.letter} special={tile.special} />);
+		for (let ii = 0; ii < boardTiles[0].length; ii++) {
+			const tile = boardTiles[i][ii];
+			row.push(<Tile ref={tile.inputRef} key={`${i}${ii}`} tile={tile} moveFocus={moveFocus} focusedCallback={tileFocused} blurredCallback={tileBlurred} changedCallback={tileChanged} />);
 		}
 
 		boardRows.push(row);
 	}
 
-	const rows = boardRows.map((row) => {
-		return <div className='row'>{row}</div>;
+	const rows = boardRows.map((row, index) => {
+		return (
+			<div key={index} className='row'>
+				{row}
+			</div>
+		);
 	});
 
 	return <div className='board'>{rows}</div>;
