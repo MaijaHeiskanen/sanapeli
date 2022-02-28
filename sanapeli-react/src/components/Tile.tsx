@@ -18,12 +18,44 @@ const Star = () => {
 	);
 };
 
-export const Tile = (props: { letter?: string; special?: string }) => {
+const mapSpecialToText = (special?: SpecialTile) => {
+	let text = "";
+
+	switch (special) {
+		case SpecialTile.x2letter:
+			text = "2x kirjain";
+			break;
+		case SpecialTile.x3letter:
+			text = "3x kirjain";
+			break;
+		case SpecialTile.x2word:
+			text = "2x sana";
+			break;
+		case SpecialTile.x3word:
+			text = "3x sana";
+			break;
+		default:
+			text = "";
+			break;
+	}
+
+	if (text) {
+		return <div className='instruction'>{text}</div>;
+	}
+};
+
+export enum LetterState {
+	Invalid = "invalid",
+	Valid = "valid",
+}
+
+export const Tile = (props: { letter?: string; special?: SpecialTile; transparent?: boolean; state?: LetterState }) => {
 	return (
-		<span className={classNames("tile", props.special)}>
+		<span className={classNames("tile", props.special, { transparent: props.transparent })}>
 			{props.special && <div className='rotated-box'></div>}
 			{props.special === SpecialTile.start && <Star />}
-			<span className={classNames("letter")}>{props.letter}</span>
+			{mapSpecialToText(props.special)}
+			{props.letter && <span className={classNames("letter")}>{props.letter}</span>}
 		</span>
 	);
 };

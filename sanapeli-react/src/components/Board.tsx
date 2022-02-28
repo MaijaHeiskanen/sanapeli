@@ -21,7 +21,11 @@ const createBoard = () => {
 		const row = [];
 
 		for (let ii = 0; ii < SIZE; ii++) {
-			row.push({ letter: "C" });
+			if (i === 3) {
+				row.push({ letter: "B" });
+			} else {
+				row.push({ letter: undefined });
+			}
 		}
 
 		tiles.push(row);

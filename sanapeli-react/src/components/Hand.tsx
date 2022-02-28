@@ -5,7 +5,7 @@ export const Hand = () => {
 	return (
 		<div className='hand'>
 			{letters.map((letter) => {
-				return <Tile letter={letter} />;
+				return <Tile letter={letter} transparent />;
 			})}
 		</div>
 	);
