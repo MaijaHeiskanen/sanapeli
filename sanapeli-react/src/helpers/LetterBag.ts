@@ -63,4 +63,16 @@ export class LetterBag {
 
 		return shuffledLetterBag;
 	}
+
+	public getLetters() {
+		return this.letterBag.slice();
+	}
+
+	public getNextLetter() {
+		if (this.letterBag.length < 1) {
+			return null;
+		}
+
+		return this.letterBag.splice(0, 1)[0];
+	}
 }

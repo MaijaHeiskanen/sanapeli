@@ -10,23 +10,34 @@ export const HAND_SIZE = 7;
 
 function App() {
 	const [hand, setHand] = useState<IHandTile[]>([]);
+	const [letterBag, setLetterBag] = useState<LetterBag>();
 
 	useEffect(() => {
 		const letterBag = new LetterBag();
-	});
+		setLetterBag(letterBag);
+	}, [setLetterBag]);
 
 	useEffect(() => {
-		const newHand = [];
+		fillHand();
+	}, [letterBag]);
 
-		for (let i = 0; i < HAND_SIZE; i++) {
-			newHand.push({
-				letter: "A",
-				used: false,
-			});
+	const fillHand = () => {
+		if (!letterBag) return;
+
+		const newHand = hand.slice();
+
+		for (let i = hand.length; i < HAND_SIZE; i++) {
+			const newLetter = letterBag.getNextLetter();
+
+			if (newLetter === null) {
+				break;
+			}
+
+			newHand.push({ letter: newLetter, used: false });
 		}
 
 		setHand(newHand);
-	}, []);
+	};
 
 	return (
 		<div className='app'>
