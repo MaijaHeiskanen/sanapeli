@@ -1,3 +1,4 @@
+import { IHandTile } from "../react-app-env";
 import words from "./../words.json";
 
 class CheckerClass {
@@ -11,7 +12,7 @@ class CheckerClass {
 		return this.validWords.has(word);
 	}
 
-	public checkLetter(letter: string | undefined): boolean {
+	public checkLetter(letter: string | undefined, hand: IHandTile[]): boolean {
 		if (!letter) return true;
 
 		if (letter.length > 1) return false;

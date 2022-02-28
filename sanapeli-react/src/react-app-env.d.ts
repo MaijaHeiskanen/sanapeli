@@ -18,3 +18,8 @@ export interface IBoardTile {
 	coordinates?: ITileCoordinates;
 	inputRef?: RefObject<HTMLInputElement>;
 }
+
+export interface IHandTile {
+	letter: string;
+	used: boolean;
+}

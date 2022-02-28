@@ -91,7 +91,7 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		const keyCode = event.code;
 
-		if (keyCode === "Backspace") {
+		if (keyCode === "Backspace" && !letter) {
 			if (props.moveFocus && coordinates) {
 				props.moveFocus(coordinates, { column: -1, row: 0 });
 			}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Checker } from "../checker/Checker";
 import { createBoard } from "../helpers/createBoard";
 import { setSpecialTiles } from "../helpers/setSpecialTiles";
-import { IBoardTile, ITile, ITileCoordinates } from "../react-app-env";
+import { IBoardTile, IHandTile, ITileCoordinates } from "../react-app-env";
 import { Tile } from "./Tile";
 
 const SIZE = 15;
@@ -20,7 +20,7 @@ const forEachTile = (board: IBoardTile[][], f: (tile: IBoardTile) => IBoardTile)
 	return newBoard;
 };
 
-export const Board = () => {
+export const Board = (props: { hand: IHandTile[] }) => {
 	const [boardTiles, setBoardTiles] = useState<IBoardTile[][]>([[]]);
 
 	useEffect(() => {
@@ -61,21 +61,16 @@ export const Board = () => {
 		const bTile = bTiles[row][column];
 
 		if (bTile && bTile.tile) {
-			console.log(Checker.checkLetter(value));
+			console.log(Checker.checkLetter(value, props.hand));
 
-			if (!Checker.checkLetter(value)) return;
+			if (!Checker.checkLetter(value, props.hand)) return;
 
 			console.log({ value });
 
 			bTile.tile.letter = value;
 			setBoardTiles(bTiles);
 
-			if (!value) {
-				const previousColumn = column === 0 ? -1 : column - 1;
-				const previousTile = bTiles[row][previousColumn];
-
-				previousTile?.inputRef?.current?.focus();
-			} else {
+			if (value) {
 				const nextTile = bTiles[row][column + 1];
 
 				nextTile?.inputRef?.current?.focus();
