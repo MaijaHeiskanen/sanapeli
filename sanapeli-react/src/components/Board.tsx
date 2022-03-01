@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Checker } from "../checker/Checker";
+import { WriteDirection } from "../enums/WriteDirection";
 import { createBoard } from "../helpers/createBoard";
 import { setSpecialTiles } from "../helpers/setSpecialTiles";
 import { IBoardTile, IHandTile, ITileCoordinates } from "../react-app-env";
@@ -20,12 +21,50 @@ const forEachTile = (board: IBoardTile[][], f: (tile: IBoardTile) => IBoardTile)
 	return newBoard;
 };
 
-export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) => boolean; unUseHandTile: (letter: string) => boolean }) => {
+export const Board = (props: { hand: IHandTile[]; direction: WriteDirection; useHandTile: (letter: string) => boolean; unUseHandTile: (letter: string) => boolean }) => {
 	const [boardTiles, setBoardTiles] = useState<IBoardTile[][]>([[]]);
 
 	useEffect(() => {
 		setBoardTiles(setSpecialTiles(createBoard(SIZE)));
 	}, []);
+
+	// useEffect(() => {
+	// 	const keyUpCallback = (event: KeyboardEvent) => {
+	// 		const code = event.code;
+	// 		console.log(code);
+
+	// 		if (code === "ShiftLeft" || code === "ShiftRight") {
+	// 			console.log("shift up");
+	// 			setDirection(WriteDirection.Right);
+	// 		}
+	// 	};
+	// 	document.addEventListener("keyup", keyUpCallback);
+
+	// 	const removeShiftListener = () => {
+	// 		document.removeEventListener("keyup", keyUpCallback);
+	// 	};
+
+	// 	return removeShiftListener;
+	// }, []);
+
+	// useEffect(() => {
+	// 	const keyDownCallback = (event: KeyboardEvent) => {
+	// 		const code = event.code;
+	// 		console.log(code);
+
+	// 		if (code === "ShiftLeft" || code === "ShiftRight") {
+	// 			console.log("shift down");
+	// 			setDirection(WriteDirection.Down);
+	// 		}
+	// 	};
+	// 	document.addEventListener("keydown", keyDownCallback);
+
+	// 	const removeShiftListener = () => {
+	// 		document.removeEventListener("keydown", keyDownCallback);
+	// 	};
+
+	// 	return removeShiftListener;
+	// }, []);
 
 	const tileFocused = (coordinates: ITileCoordinates) => {
 		const { column, row } = coordinates;
@@ -56,6 +95,7 @@ export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) 
 	};
 
 	const tileChanged = (coordinates: ITileCoordinates, value: string | undefined) => {
+		const direction = props.direction;
 		const { column, row } = coordinates;
 		const bTiles = boardTiles.slice();
 		const bTile = bTiles[row][column];
@@ -66,18 +106,23 @@ export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) 
 			if (!Checker.checkLetter(value)) return;
 
 			if (!value || props.useHandTile(value)) {
-				if (!value) {
-					const oldValue = bTile.tile.letter;
+				const oldValue = bTile.tile.letter;
 
-					if (oldValue) {
-						props.unUseHandTile(oldValue);
-					}
+				if (oldValue) {
+					props.unUseHandTile(oldValue);
 				}
+
 				bTile.tile.letter = value;
 				setBoardTiles(bTiles);
 
-				if (value) {
-					const nextTile = bTiles[row][column + 1];
+				if (!oldValue) {
+					let nextTile = bTiles[row][column + 1];
+
+					if (direction === WriteDirection.Right) {
+						nextTile = bTiles[row][column + 1];
+					} else if (direction === WriteDirection.Down) {
+						nextTile = bTiles[row + 1][column];
+					}
 
 					nextTile?.inputRef?.current?.focus();
 				}
@@ -96,8 +141,9 @@ export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) 
 		const newColumn = column + moveColumn;
 		const focusColumn = newColumn > columnLength ? (newColumn % columnLength) - 1 : newColumn < 0 ? columnLength : newColumn;
 		const focusTile = bTiles[focusRow][focusColumn];
+		const input = focusTile?.inputRef?.current;
 
-		focusTile?.inputRef?.current?.focus();
+		input?.focus();
 	};
 
 	const boardRows = [];
@@ -107,7 +153,7 @@ export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) 
 
 		for (let ii = 0; ii < boardTiles[0].length; ii++) {
 			const tile = boardTiles[i][ii];
-			row.push(<Tile ref={tile.inputRef} key={`${i}${ii}`} tile={tile} moveFocus={moveFocus} focusedCallback={tileFocused} blurredCallback={tileBlurred} changedCallback={tileChanged} />);
+			row.push(<Tile ref={tile.inputRef} key={`${i}${ii}`} tile={tile} direction={props.direction} moveFocus={moveFocus} focusedCallback={tileFocused} blurredCallback={tileBlurred} changedCallback={tileChanged} />);
 		}
 
 		boardRows.push(row);

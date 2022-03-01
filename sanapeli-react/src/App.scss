@@ -149,6 +149,10 @@ body {
 		&.locked {
 			background-color: white;
 		}
+
+		&.focused:not(.has-letter) {
+			opacity: 0.6;
+		}
 	}
 
 	.star {

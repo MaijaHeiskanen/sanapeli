@@ -3,6 +3,7 @@ import "./App.scss";
 import { Board } from "./components/Board";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { WriteDirection } from "./enums/WriteDirection";
 import { LetterBag } from "./helpers/LetterBag";
 import { IHandTile } from "./react-app-env";
 
@@ -11,6 +12,27 @@ export const HAND_SIZE = 7;
 function App() {
 	const [hand, setHand] = useState<IHandTile[]>([]);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
+	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
+
+	useEffect(() => {
+		const keyDownCallback = (event: KeyboardEvent) => {
+			const code = event.code;
+
+			if (code === "Tab") {
+				event.preventDefault();
+				const newDirection = direction === WriteDirection.Right ? WriteDirection.Down : WriteDirection.Right;
+
+				setDirection(newDirection);
+			}
+		};
+		document.addEventListener("keydown", keyDownCallback);
+
+		const removeShiftListener = () => {
+			document.removeEventListener("keydown", keyDownCallback);
+		};
+
+		return removeShiftListener;
+	}, [direction]);
 
 	const fillHand = useCallback(
 		(existingHand?: IHandTile[]) => {
@@ -77,13 +99,14 @@ function App() {
 	}, [setLetterBag]);
 
 	useEffect(() => {
-		fillHand();
+		fillHand([]);
 	}, [letterBag]);
 
 	return (
 		<div className='app'>
 			<GameArea>
-				<Board hand={hand} useHandTile={useHandTile} unUseHandTile={unUseHandTile} />
+				<Board hand={hand} useHandTile={useHandTile} unUseHandTile={unUseHandTile} direction={direction} />
+				<div>{direction}</div>
 				<Hand hand={hand} />
 			</GameArea>
 		</div>

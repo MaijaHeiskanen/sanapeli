@@ -1,6 +1,7 @@
 import classNames from "classnames";
-import React, { ChangeEvent, ForwardedRef, forwardRef, KeyboardEvent, KeyboardEventHandler } from "react";
+import React, { ChangeEvent, FocusEvent, ForwardedRef, forwardRef, KeyboardEvent, KeyboardEventHandler } from "react";
 import { SpecialTile } from "../enums/SpecialTile";
+import { WriteDirection } from "../enums/WriteDirection";
 import { IBoardTile, ITileCoordinates } from "../react-app-env";
 
 const Star = () => {
@@ -54,6 +55,7 @@ export enum LetterState {
 
 interface TileProps {
 	tile?: IBoardTile;
+	direction: WriteDirection;
 	focusedCallback?: (coordinates: ITileCoordinates) => void;
 	blurredCallback?: (coordinates: ITileCoordinates) => void;
 	changedCallback?: (coordinates: ITileCoordinates, value: string | undefined) => void;
@@ -64,7 +66,9 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 	const { special, coordinates, tile } = props.tile || {};
 	const { letter, focused, locked, invalid } = tile || {};
 
-	const onTileFocused = () => {
+	const onTileFocused = (event: FocusEvent<HTMLInputElement>) => {
+		event.currentTarget.setSelectionRange(event.currentTarget.value.length, event.currentTarget.value.length);
+
 		if (props.focusedCallback && coordinates) {
 			props.focusedCallback(coordinates);
 		}
@@ -90,31 +94,48 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 
 	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		const keyCode = event.code;
+		let shouldPreventDefault = false;
 
 		if (keyCode === "Backspace" && !letter) {
 			if (props.moveFocus && coordinates) {
-				props.moveFocus(coordinates, { column: -1, row: 0 });
+				const direction = props.direction;
+				const moveDirection = { column: 0, row: 0 };
+
+				if (direction === WriteDirection.Right) {
+					moveDirection.column = -1;
+				} else if (direction === WriteDirection.Down) {
+					moveDirection.row = -1;
+				}
+				props.moveFocus(coordinates, moveDirection);
 			}
 		}
 		if (keyCode === "ArrowUp") {
 			if (props.moveFocus && coordinates) {
+				shouldPreventDefault = true;
 				props.moveFocus(coordinates, { column: 0, row: -1 });
 			}
 		}
 		if (keyCode === "ArrowRight") {
 			if (props.moveFocus && coordinates) {
+				shouldPreventDefault = true;
 				props.moveFocus(coordinates, { column: 1, row: 0 });
 			}
 		}
 		if (keyCode === "ArrowLeft") {
 			if (props.moveFocus && coordinates) {
+				shouldPreventDefault = true;
 				props.moveFocus(coordinates, { column: -1, row: 0 });
 			}
 		}
 		if (keyCode === "ArrowDown") {
 			if (props.moveFocus && coordinates) {
+				shouldPreventDefault = true;
 				props.moveFocus(coordinates, { column: 0, row: 1 });
 			}
+		}
+
+		if (shouldPreventDefault) {
+			event.preventDefault();
 		}
 	};
 
@@ -126,6 +147,7 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 			{special === SpecialTile.start && <Star />}
 			{mapSpecialToText(special)}
 			<input
+				type={"text"}
 				ref={ref}
 				onKeyDown={onKeyDown}
 				onFocus={onTileFocused}
