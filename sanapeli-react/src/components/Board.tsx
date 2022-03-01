@@ -20,7 +20,7 @@ const forEachTile = (board: IBoardTile[][], f: (tile: IBoardTile) => IBoardTile)
 	return newBoard;
 };
 
-export const Board = (props: { hand: IHandTile[] }) => {
+export const Board = (props: { hand: IHandTile[]; useHandTile: (letter: string) => boolean; unUseHandTile: (letter: string) => boolean }) => {
 	const [boardTiles, setBoardTiles] = useState<IBoardTile[][]>([[]]);
 
 	useEffect(() => {
@@ -61,19 +61,26 @@ export const Board = (props: { hand: IHandTile[] }) => {
 		const bTile = bTiles[row][column];
 
 		if (bTile && bTile.tile) {
-			console.log(Checker.checkLetter(value, props.hand));
+			console.log(Checker.checkLetter(value));
 
-			if (!Checker.checkLetter(value, props.hand)) return;
+			if (!Checker.checkLetter(value)) return;
 
-			console.log({ value });
+			if (!value || props.useHandTile(value)) {
+				if (!value) {
+					const oldValue = bTile.tile.letter;
 
-			bTile.tile.letter = value;
-			setBoardTiles(bTiles);
+					if (oldValue) {
+						props.unUseHandTile(oldValue);
+					}
+				}
+				bTile.tile.letter = value;
+				setBoardTiles(bTiles);
 
-			if (value) {
-				const nextTile = bTiles[row][column + 1];
+				if (value) {
+					const nextTile = bTiles[row][column + 1];
 
-				nextTile?.inputRef?.current?.focus();
+					nextTile?.inputRef?.current?.focus();
+				}
 			}
 		}
 	};

@@ -12,7 +12,7 @@ class CheckerClass {
 		return this.validWords.has(word);
 	}
 
-	public checkLetter(letter: string | undefined, hand: IHandTile[]): boolean {
+	public checkLetter(letter: string | undefined): boolean {
 		if (!letter) return true;
 
 		if (letter.length > 1) return false;

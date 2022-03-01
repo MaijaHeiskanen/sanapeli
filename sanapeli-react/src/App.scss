@@ -63,6 +63,12 @@ body {
 		flex-wrap: nowrap;
 		gap: 0.3em;
 	}
+
+	.letter {
+		&.locked {
+			opacity: 1;
+		}
+	}
 }
 
 .hand {
@@ -74,6 +80,13 @@ body {
 	padding: 0.5em;
 	display: flex;
 	gap: 0.3em;
+
+	.letter {
+		&.locked {
+			opacity: 0.7;
+			color: lighten(black, 30%);
+		}
+	}
 }
 
 .tile {
@@ -129,17 +142,12 @@ body {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		opacity: 1;
 		text-transform: capitalize;
 
 		&.has-letter,
 		&.focused,
 		&.locked {
 			background-color: white;
-		}
-
-		&.locked {
-			opacity: 1;
 		}
 	}
 
