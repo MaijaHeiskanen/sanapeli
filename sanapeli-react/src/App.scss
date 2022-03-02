@@ -63,12 +63,11 @@ body {
 		flex-wrap: nowrap;
 		gap: 0.3em;
 	}
+}
 
-	.letter {
-		&.locked {
-			opacity: 1;
-		}
-	}
+.direction {
+	font-size: 20px;
+	padding-bottom: 1em;
 }
 
 .hand {
@@ -81,15 +80,16 @@ body {
 	display: flex;
 	gap: 0.3em;
 
-	.letter {
-		&.locked {
+	.tile {
+		&.played {
 			opacity: 0.7;
 			color: lighten(black, 30%);
 		}
 	}
 }
 
-.tile {
+.cell,
+.hand-cell {
 	--border-color: white;
 	aspect-ratio: 1 / 1;
 	border: 1px solid;
@@ -133,7 +133,7 @@ body {
 	background-color: var(--tile-color);
 	border-color: var(--border-color);
 
-	> .letter {
+	> .tile {
 		z-index: 10;
 		width: 100%;
 		height: 100%;
@@ -144,13 +144,17 @@ body {
 		justify-content: center;
 		text-transform: capitalize;
 
+		&:disabled {
+			cursor: default;
+		}
+
 		&.has-letter,
-		&.focused,
-		&.locked {
+		&:focus,
+		&.played {
 			background-color: white;
 		}
 
-		&.focused:not(.has-letter) {
+		&:focus:not(.has-letter) {
 			opacity: 0.6;
 		}
 	}

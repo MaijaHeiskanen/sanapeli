@@ -1,25 +1,23 @@
 /// <reference types="react-scripts" />
 
-export interface ITile {
-	letter?: string;
-	focused?: boolean;
-	locked?: boolean;
-	invalid?: boolean;
-}
+import { SpecialCell } from "./enums/SpecialCell";
 
 export interface ITileCoordinates {
 	column: number;
 	row: number;
 }
 
-export interface IBoardTile {
+export interface IBoardCell {
 	tile?: ITile;
-	special?: SpecialTile;
+	special?: SpecialCell;
 	coordinates?: ITileCoordinates;
 	inputRef?: RefObject<HTMLInputElement>;
+	focused?: boolean;
+	invalidTile?: boolean;
 }
 
-export interface IHandTile {
+export interface ITile {
 	letter: string;
-	used: boolean;
+	played?: boolean;
+	locked?: boolean;
 }

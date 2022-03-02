@@ -1,4 +1,3 @@
-import { IHandTile } from "../react-app-env";
 import words from "./../words.json";
 
 class CheckerClass {

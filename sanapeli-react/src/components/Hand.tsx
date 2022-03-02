@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { HAND_SIZE } from "../App";
-import { WriteDirection } from "../enums/WriteDirection";
-import { IHandTile } from "../react-app-env";
+
+import { ITile } from "../react-app-env";
 import { Tile } from "./Tile";
 
-export const Hand = (props: { hand: IHandTile[] }) => {
-	const [handTiles, setHandTiles] = useState<Partial<IHandTile[]>>([]);
+export const Hand = (props: { hand: ITile[] }) => {
+	const [handTiles, setHandTiles] = useState<Partial<ITile[]>>([]);
 
 	useEffect(() => {
 		const newHand = props.hand.slice();
@@ -15,7 +15,6 @@ export const Hand = (props: { hand: IHandTile[] }) => {
 			for (let i = newHandLength; i < HAND_SIZE; i++) {
 				newHand.push({
 					letter: "",
-					used: false,
 				});
 			}
 		}
@@ -26,7 +25,11 @@ export const Hand = (props: { hand: IHandTile[] }) => {
 	return (
 		<div className='hand'>
 			{handTiles.map((tile, index) => {
-				return <Tile key={index} tile={{ tile: { letter: tile?.letter, locked: tile?.used } }} direction={WriteDirection.Right} />;
+				return (
+					<span key={index} className='hand-cell'>
+						<Tile tile={tile} disabled />
+					</span>
+				);
 			})}
 		</div>
 	);

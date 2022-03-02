@@ -1,4 +1,4 @@
-export const enum SpecialTile {
+export const enum SpecialCell {
 	x2letter = "x2letter",
 	x3letter = "x3letter",
 	x2word = "x2word",

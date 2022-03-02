@@ -1,21 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.scss";
 import { Board } from "./components/Board";
+import { Direction } from "./components/Direction";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
 import { WriteDirection } from "./enums/WriteDirection";
+import { createBoard } from "./helpers/createBoard";
 import { LetterBag } from "./helpers/LetterBag";
-import { IHandTile } from "./react-app-env";
+import { setSpecialCells } from "./helpers/setSpecialTiles";
+import { useKeyDownListener } from "./hooks/useKeyDownListener";
+import { IBoardCell, ITile } from "./react-app-env";
 
+const BOARD_SIZE = 15;
 export const HAND_SIZE = 7;
 
 function App() {
-	const [hand, setHand] = useState<IHandTile[]>([]);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
 	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
+	const [hand, setHand] = useState<ITile[]>([]);
+	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 
 	useEffect(() => {
-		const keyDownCallback = (event: KeyboardEvent) => {
+		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
+	}, []);
+
+	const keyDownCallback = useCallback(
+		(event: KeyboardEvent) => {
 			const code = event.code;
 
 			if (code === "Tab") {
@@ -24,46 +34,42 @@ function App() {
 
 				setDirection(newDirection);
 			}
-		};
-		document.addEventListener("keydown", keyDownCallback);
+		},
+		[direction]
+	);
 
-		const removeShiftListener = () => {
-			document.removeEventListener("keydown", keyDownCallback);
-		};
-
-		return removeShiftListener;
-	}, [direction]);
+	useKeyDownListener(keyDownCallback);
 
 	const fillHand = useCallback(
-		(existingHand?: IHandTile[]) => {
+		(existingHand: ITile[]) => {
 			if (!letterBag) return;
 
-			const newHand = existingHand || hand.slice();
+			const newHand = existingHand?.slice();
 
-			for (let i = hand.length; i < HAND_SIZE; i++) {
+			for (let i = newHand.length; i < HAND_SIZE; i++) {
 				const newLetter = letterBag.getNextLetter();
 
 				if (newLetter === null) {
 					break;
 				}
 
-				newHand.push({ letter: newLetter, used: false });
+				newHand.push({ letter: newLetter });
 			}
 
 			setHand(newHand);
 		},
-		[letterBag, hand]
+		[letterBag]
 	);
 
-	const useHandTile = (letter: string): boolean => {
+	const playHandTile = (letter: string): boolean => {
 		const upperCaseLetter = letter.toUpperCase();
 		const currentHand = hand.slice();
 
 		for (let i = 0, len = currentHand.length; i < len; i++) {
 			const handTile = currentHand[i];
 
-			if (upperCaseLetter === handTile.letter && !handTile.used) {
-				handTile.used = true;
+			if (upperCaseLetter === handTile.letter && !handTile.played) {
+				handTile.played = true;
 
 				setHand(currentHand);
 
@@ -74,15 +80,15 @@ function App() {
 		return false;
 	};
 
-	const unUseHandTile = (letter: string): boolean => {
+	const unPlayHandTile = (letter: string): boolean => {
 		const upperCaseLetter = letter.toUpperCase();
 		const currentHand = hand.slice();
 
 		for (let i = 1, len = currentHand.length; i <= len; i++) {
 			const handTile = currentHand[len - i];
 
-			if (upperCaseLetter === handTile.letter && handTile.used) {
-				handTile.used = false;
+			if (upperCaseLetter === handTile.letter && handTile.played) {
+				handTile.played = false;
 
 				setHand(currentHand);
 
@@ -99,14 +105,14 @@ function App() {
 	}, [setLetterBag]);
 
 	useEffect(() => {
-		fillHand([]);
+		fillHand(hand);
 	}, [letterBag]);
 
 	return (
 		<div className='app'>
 			<GameArea>
-				<Board hand={hand} useHandTile={useHandTile} unUseHandTile={unUseHandTile} direction={direction} />
-				<div>{direction}</div>
+				<Board playHandTile={playHandTile} unPlayHandTile={unPlayHandTile} direction={direction} boardCells={boardCells} setBoardCells={setBoardCells} />
+				<Direction direction={direction} />
 				<Hand hand={hand} />
 			</GameArea>
 		</div>
