@@ -12,7 +12,6 @@ export interface IBoardCell {
 	special?: SpecialCell;
 	coordinates?: ITileCoordinates;
 	inputRef?: RefObject<HTMLInputElement>;
-	focused?: boolean;
 	invalidTile?: boolean;
 }
 

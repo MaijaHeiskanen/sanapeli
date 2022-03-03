@@ -10,29 +10,17 @@ import { Tile } from "./Tile";
 interface CellProps {
 	cell?: IBoardCell;
 	direction: WriteDirection;
-	focusedCallback?: (coordinates: ITileCoordinates) => void;
-	blurredCallback?: (coordinates: ITileCoordinates) => void;
 	changedCallback?: (coordinates: ITileCoordinates, value: string | undefined) => void;
 	moveFocus?: (coordinates: ITileCoordinates, direction: ITileCoordinates) => void;
 }
 
 export const Cell = forwardRef<HTMLInputElement, CellProps>((props: CellProps, ref: ForwardedRef<HTMLInputElement>) => {
-	const { cell, direction, focusedCallback, blurredCallback, changedCallback, moveFocus } = props;
-	const { special, coordinates, tile, focused, invalidTile } = cell || {};
+	const { cell, direction, changedCallback, moveFocus } = props;
+	const { special, coordinates, tile, invalidTile } = cell || {};
 	const { letter, played, locked } = tile || {};
 
 	const onTileFocused = (event: FocusEvent<HTMLInputElement>) => {
 		event.currentTarget.setSelectionRange(event.currentTarget.value.length, event.currentTarget.value.length);
-
-		if (focusedCallback && coordinates) {
-			focusedCallback(coordinates);
-		}
-	};
-
-	const onTileBlurred = () => {
-		if (blurredCallback && coordinates) {
-			blurredCallback(coordinates);
-		}
 	};
 
 	const onTileChanged = (event: ChangeEvent<HTMLInputElement>) => {
@@ -97,11 +85,11 @@ export const Cell = forwardRef<HTMLInputElement, CellProps>((props: CellProps, r
 	const instructionText = mapSpecialCellTypeToText(special);
 
 	return (
-		<span className={classNames("cell", special, { played, locked, invalidTile, focused, "has-letter": !isEmpty })}>
+		<span className={classNames("cell", special, { played, locked, invalidTile, "has-letter": !isEmpty })}>
 			{special && <div className='rotated-box'></div>}
 			{special === SpecialCell.start && <Star />}
 			{instructionText && <div className='instruction'>{instructionText}</div>}
-			<Tile ref={ref} tile={tile} onFocus={onTileFocused} onBlur={onTileBlurred} onChange={onTileChanged} onKeyDown={onKeyDown} />
+			<Tile ref={ref} tile={tile} onFocus={onTileFocused} onChange={onTileChanged} onKeyDown={onKeyDown} />
 		</span>
 	);
 });
