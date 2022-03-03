@@ -10,7 +10,7 @@ export interface ITileCoordinates {
 export interface IBoardCell {
 	tile?: ITile;
 	special?: SpecialCell;
-	coordinates?: ITileCoordinates;
+	coordinates: ITileCoordinates;
 	inputRef?: RefObject<HTMLInputElement>;
 	invalidTile?: boolean;
 }

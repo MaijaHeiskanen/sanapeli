@@ -11,7 +11,7 @@ import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
 import { IBoardCell, ITile, ITileCoordinates } from "./react-app-env";
 
-const BOARD_SIZE = 15;
+export const BOARD_SIZE = 15;
 export const HAND_SIZE = 7;
 
 function App() {
@@ -56,12 +56,48 @@ function App() {
 		[boardCells]
 	);
 
+	const hasEmptyCellsBetween = useCallback(
+		(playedCells: IBoardCell[], boardCells: IBoardCell[][]) => {
+			const cellsLength = playedCells.length;
+
+			if (cellsLength < 2) return false;
+
+			const directionIsRight = direction === WriteDirection.Right;
+			const fieldWithDynamicValue = directionIsRight ? "column" : "row";
+			const fieldWithStaticValue = directionIsRight ? "row" : "column";
+			const staticFieldIndex = playedCells[0].coordinates[fieldWithStaticValue];
+
+			const emptyIndexes: number[] = [];
+			const firstIndex = playedCells[0].coordinates[fieldWithDynamicValue];
+			const lastIndex = playedCells[cellsLength - 1].coordinates[fieldWithDynamicValue];
+
+			for (let i = firstIndex + 1, len = lastIndex; i < len; i++) {
+				const tile = (directionIsRight ? boardCells[staticFieldIndex][i] : boardCells[i][staticFieldIndex]).tile;
+
+				if (!tile) {
+					emptyIndexes.push(i);
+				}
+			}
+
+			return emptyIndexes.length > 0;
+		},
+		[direction]
+	);
+
+	const checkPlayedWord = useCallback(() => {
+		const playedCells = getCellsWithNotLockedTiles();
+		const emptyCells = hasEmptyCellsBetween(playedCells, boardCells);
+
+		console.log(emptyCells);
+	}, [boardCells, getCellsWithNotLockedTiles, hasEmptyCellsBetween]);
+
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
 			const code = event.code;
+			let preventDefault = false;
 
 			if (code === "Tab") {
-				event.preventDefault();
+				preventDefault = true;
 
 				const playedCells = getCellsWithNotLockedTiles();
 				const amountOfPlayedCells = playedCells.length;
@@ -87,17 +123,33 @@ function App() {
 						moveFocus(currentCoordinates, moveDirection);
 					}
 				}
+			} else if (code === "Enter") {
+				preventDefault = true;
+				checkPlayedWord();
+				console.log("enter");
+			}
+
+			if (preventDefault) {
+				event.preventDefault();
 			}
 		},
-		[direction, getCellsWithNotLockedTiles, moveFocus]
+		[direction, getCellsWithNotLockedTiles, moveFocus, checkPlayedWord]
 	);
 
 	useKeyDownListener(keyDownCallback);
 
+	const sameRow = (c1: ITileCoordinates, c2: ITileCoordinates) => {
+		return c1.row === c2.row;
+	};
+
+	const sameColumn = (c1: ITileCoordinates, c2: ITileCoordinates) => {
+		return c1.column === c2.column;
+	};
+
 	const alignedWithOtherPlayedTiles = (coordinates: ITileCoordinates) => {
 		const cellsWithPlayedTile = getCellsWithNotLockedTiles();
-		const isSameRow = cellsWithPlayedTile.every((playedCell) => playedCell.coordinates?.row && playedCell.coordinates.row && coordinates?.row && coordinates.row && playedCell.coordinates.row === coordinates.row);
-		const isSameColumn = cellsWithPlayedTile.every((playedCell) => playedCell.coordinates?.column && playedCell.coordinates.column && coordinates?.column && coordinates.column && playedCell.coordinates.column === coordinates.column);
+		const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
+		const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
 
 		return isSameRow || isSameColumn;
 	};
