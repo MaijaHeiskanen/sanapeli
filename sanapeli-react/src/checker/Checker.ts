@@ -8,7 +8,9 @@ class CheckerClass {
 	}
 
 	public checkWord(word: string) {
-		return this.validWords.has(word);
+		console.log(word);
+
+		return this.validWords.has(word.toLowerCase());
 	}
 
 	public checkLetter(letter: string | undefined): boolean {

@@ -20,3 +20,9 @@ export interface ITile {
 	played?: boolean;
 	locked?: boolean;
 }
+
+export interface ITurn {
+	playedWords: string[];
+	filledCells: IBoardCell[];
+	points: number;
+}

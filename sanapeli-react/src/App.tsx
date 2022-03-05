@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.scss";
+import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
 import { Direction } from "./components/Direction";
 import { GameArea } from "./components/GameArea";
@@ -9,7 +10,7 @@ import { createBoard } from "./helpers/createBoard";
 import { LetterBag } from "./helpers/LetterBag";
 import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
-import { IBoardCell, ITile, ITileCoordinates } from "./react-app-env";
+import { IBoardCell, ITile, ITileCoordinates, ITurn } from "./react-app-env";
 
 export const BOARD_SIZE = 15;
 export const HAND_SIZE = 7;
@@ -19,6 +20,7 @@ function App() {
 	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
 	const [hand, setHand] = useState<ITile[]>([]);
 	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
+	const [turns, setTurns] = useState<ITurn[]>([]);
 
 	useEffect(() => {
 		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
@@ -84,22 +86,204 @@ function App() {
 		[direction]
 	);
 
-	const setCellErrors = (coordinates: ITileCoordinates[]) => {
-		const newBoardCells = [...boardCells];
+	const resetCellErrors = useCallback(() => {
+		const rows: IBoardCell[][] = [];
 
-		for (let i = 0, len = coordinates.length; i < len; i++) {
-			const { column, row } = coordinates[i];
-			const cell = { ...newBoardCells[row][column] };
+		for (let i = 0, len1 = boardCells.length; i < len1; i++) {
+			const column: IBoardCell[] = [];
 
-			cell.invalidTile = true;
+			for (let ii = 0, len2 = boardCells[0].length; ii < len2; ii++) {
+				const cell = boardCells[i][ii];
 
-			newBoardCells[row][column] = cell;
+				cell.invalidTile = false;
+
+				column.push(cell);
+			}
+
+			rows.push(column);
 		}
 
-		setBoardCells(newBoardCells);
-	};
+		setBoardCells(rows);
+	}, [boardCells]);
 
-	const getNewWords = () => {};
+	const setCellErrors = useCallback(
+		(coordinates: ITileCoordinates[]) => {
+			const newBoardCells = [...boardCells];
+
+			for (let i = 0, len = coordinates.length; i < len; i++) {
+				const { column, row } = coordinates[i];
+				const cell = { ...newBoardCells[row][column] };
+
+				cell.invalidTile = true;
+
+				newBoardCells[row][column] = cell;
+			}
+
+			setBoardCells(newBoardCells);
+		},
+		[boardCells]
+	);
+
+	const wordOnSecondaryAxis = useCallback(
+		(cell: IBoardCell, boardCells: IBoardCell[][]): IBoardCell[] | undefined => {
+			const tile = cell.tile;
+
+			if (!tile) return undefined;
+
+			const directionIsRight = direction === WriteDirection.Right;
+			const fieldWithStaticValue = directionIsRight ? "column" : "row";
+			const fieldWithDynamicValue = directionIsRight ? "row" : "column";
+			const staticFieldIndex = cell.coordinates[fieldWithStaticValue];
+			const dynamicFieldIndex = cell.coordinates[fieldWithDynamicValue];
+
+			let existingCellsBefore: IBoardCell[] = [];
+
+			for (let i = 0, len = dynamicFieldIndex; i < len; i++) {
+				const cell = directionIsRight ? boardCells[i][staticFieldIndex] : boardCells[staticFieldIndex][i];
+				const tile = cell.tile;
+				const letter = tile?.letter;
+
+				if (letter) {
+					existingCellsBefore.push(cell);
+				} else {
+					existingCellsBefore = [];
+				}
+			}
+
+			let existingCellsAfter: IBoardCell[] = [];
+
+			for (let i = dynamicFieldIndex + 1, len = BOARD_SIZE; i < len; i++) {
+				const cell = directionIsRight ? boardCells[i][staticFieldIndex] : boardCells[staticFieldIndex][i];
+				const tile = cell.tile;
+				const letter = tile?.letter;
+
+				if (letter) {
+					existingCellsAfter.push(cell);
+				} else {
+					break;
+				}
+			}
+
+			const word: IBoardCell[] = existingCellsBefore.concat(cell, ...existingCellsAfter);
+
+			if (word.length > 1) {
+				return word;
+			}
+
+			return undefined;
+		},
+		[direction]
+	);
+
+	const getNewWords = useCallback(
+		(playedCells: IBoardCell[], boardCells: IBoardCell[][]): IBoardCell[][] => {
+			const words = [];
+
+			const cellsLength = playedCells.length;
+
+			const directionIsRight = direction === WriteDirection.Right;
+			const fieldWithDynamicValue = directionIsRight ? "column" : "row";
+			const fieldWithStaticValue = directionIsRight ? "row" : "column";
+			const staticFieldIndex = playedCells[0].coordinates[fieldWithStaticValue];
+
+			const firstIndex = playedCells[0].coordinates[fieldWithDynamicValue];
+			const lastIndex = playedCells[cellsLength - 1].coordinates[fieldWithDynamicValue];
+
+			let existingCellsBeforeTheWordOnMainAxis: IBoardCell[] = [];
+
+			for (let i = 0, len = firstIndex; i < len; i++) {
+				const cell = directionIsRight ? boardCells[staticFieldIndex][i] : boardCells[i][staticFieldIndex];
+				const tile = cell.tile;
+				const letter = tile?.letter;
+
+				if (letter) {
+					existingCellsBeforeTheWordOnMainAxis.push(cell);
+				} else {
+					existingCellsBeforeTheWordOnMainAxis = [];
+				}
+			}
+
+			let existingCellsAfterTheWordOnMainAxis: IBoardCell[] = [];
+
+			for (let i = lastIndex + 1, len = BOARD_SIZE; i < len; i++) {
+				const cell = directionIsRight ? boardCells[staticFieldIndex][i] : boardCells[i][staticFieldIndex];
+				const tile = cell.tile;
+				const letter = tile?.letter;
+
+				if (letter) {
+					existingCellsAfterTheWordOnMainAxis.push(cell);
+				} else {
+					break;
+				}
+			}
+
+			let playedWordOnMainAxis: IBoardCell[] = [];
+
+			for (let i = firstIndex, len = lastIndex + 1; i < len; i++) {
+				const cell = directionIsRight ? boardCells[staticFieldIndex][i] : boardCells[i][staticFieldIndex];
+				const tile = cell.tile;
+				const letter = tile?.letter;
+
+				if (letter) {
+					playedWordOnMainAxis.push(cell);
+				}
+			}
+
+			const wordOnMainAxis = existingCellsBeforeTheWordOnMainAxis.concat(...playedWordOnMainAxis, ...existingCellsAfterTheWordOnMainAxis);
+
+			const wordsOnSecondaryAxis = [];
+
+			for (let i = 0, len = playedCells.length; i < len; i++) {
+				const cell = playedCells[i];
+				const word = wordOnSecondaryAxis(cell, boardCells);
+
+				if (word) {
+					wordsOnSecondaryAxis.push(word);
+				}
+			}
+
+			console.log({ a: [...wordOnMainAxis], b: [...wordsOnSecondaryAxis] });
+
+			words.push(wordOnMainAxis, ...wordsOnSecondaryAxis);
+
+			return words;
+		},
+		[direction, wordOnSecondaryAxis]
+	);
+
+	const validateWords = useCallback((words: IBoardCell[][]): [passingWords: IBoardCell[][], failingWords: IBoardCell[][]] => {
+		const checker = Checker;
+
+		const passingWords = [];
+		const failingWords = [];
+
+		for (let i = 0, len = words.length; i < len; i++) {
+			const word = words[i];
+			let text = "";
+
+			for (let ii = 0, len2 = word.length; ii < len2; ii++) {
+				const letter = word[ii].tile?.letter;
+
+				if (letter) {
+					text += letter;
+				}
+			}
+
+			const check = checker.checkWord(text);
+
+			if (check) {
+				passingWords.push(word);
+			} else {
+				failingWords.push(word);
+			}
+		}
+
+		return [passingWords, failingWords];
+	}, []);
+
+	const calculatePoints = useCallback((words: IBoardCell[][]): number => {
+		return 10;
+	}, []);
 
 	const checkPlayedWord = useCallback(() => {
 		resetCellErrors();
@@ -113,8 +297,52 @@ function App() {
 			return false;
 		}
 
-		const newWords = getNewWords();
-	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween]);
+		const newWords = getNewWords(playedCells, boardCells);
+
+		const [passingWords, failingWords] = validateWords(newWords);
+
+		if (failingWords.length > 0) {
+			const invalidCoordinates: ITileCoordinates[] = [];
+
+			for (let i = 0, len = failingWords.length; i < len; i++) {
+				const word = failingWords[i];
+
+				for (let ii = 0, len2 = word.length; ii < len2; ii++) {
+					const cell = word[ii];
+					const coordinates = cell.coordinates;
+					invalidCoordinates.push(coordinates);
+				}
+			}
+
+			setCellErrors(invalidCoordinates);
+
+			return false;
+		}
+
+		const points = calculatePoints(passingWords);
+
+		const words = [];
+
+		for (let i = 0, len = passingWords.length; i < len; i++) {
+			const word = passingWords[i];
+			let stringWord = "";
+
+			for (let ii = 0, len2 = word.length; ii < len2; ii++) {
+				const letter = word[ii].tile?.letter;
+
+				if (letter) {
+					stringWord += letter;
+				}
+			}
+
+			words.push(stringWord);
+		}
+
+		turns.push({ playedWords: words, filledCells: playedCells, points });
+		console.log({ playedWords: words, filledCells: playedCells, points });
+
+		setTurns(turns);
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -199,26 +427,6 @@ function App() {
 		},
 		[letterBag]
 	);
-
-	const resetCellErrors = () => {
-		const rows: IBoardCell[][] = [];
-
-		for (let i = 0, len1 = boardCells.length; i < len1; i++) {
-			const column: IBoardCell[] = [];
-
-			for (let ii = 0, len2 = boardCells[0].length; ii < len2; ii++) {
-				const cell = boardCells[i][ii];
-
-				cell.invalidTile = false;
-
-				column.push(cell);
-			}
-
-			rows.push(column);
-		}
-
-		setBoardCells(rows);
-	};
 
 	const playHandTile = (letter: string, coordinates: ITileCoordinates): ITile | null => {
 		const upperCaseLetter = letter.toUpperCase();
