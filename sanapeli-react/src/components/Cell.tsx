@@ -85,8 +85,9 @@ export const Cell = forwardRef<HTMLInputElement, CellProps>((props: CellProps, r
 	const instructionText = mapSpecialCellTypeToText(special);
 
 	return (
-		<span className={classNames("cell", special, { played, locked, invalidTile, "has-letter": !isEmpty })}>
+		<span className={classNames("cell", special, { played, locked, "has-letter": !isEmpty })}>
 			{special && <div className='rotated-box'></div>}
+			{invalidTile && <div className='invalid blink'></div>}
 			{special === SpecialCell.start && <Star />}
 			{instructionText && <div className='instruction'>{instructionText}</div>}
 			<Tile ref={ref} tile={tile} onFocus={onTileFocused} onChange={onTileChanged} onKeyDown={onKeyDown} />

@@ -56,18 +56,18 @@ function App() {
 		[boardCells]
 	);
 
-	const hasEmptyCellsBetween = useCallback(
+	const emptyCellsBetween = useCallback(
 		(playedCells: IBoardCell[], boardCells: IBoardCell[][]) => {
 			const cellsLength = playedCells.length;
 
-			if (cellsLength < 2) return false;
+			if (cellsLength < 2) return [];
 
 			const directionIsRight = direction === WriteDirection.Right;
 			const fieldWithDynamicValue = directionIsRight ? "column" : "row";
 			const fieldWithStaticValue = directionIsRight ? "row" : "column";
 			const staticFieldIndex = playedCells[0].coordinates[fieldWithStaticValue];
 
-			const emptyIndexes: number[] = [];
+			const emptyIndexes: ITileCoordinates[] = [];
 			const firstIndex = playedCells[0].coordinates[fieldWithDynamicValue];
 			const lastIndex = playedCells[cellsLength - 1].coordinates[fieldWithDynamicValue];
 
@@ -75,21 +75,46 @@ function App() {
 				const tile = (directionIsRight ? boardCells[staticFieldIndex][i] : boardCells[i][staticFieldIndex]).tile;
 
 				if (!tile) {
-					emptyIndexes.push(i);
+					emptyIndexes.push(directionIsRight ? { column: i, row: staticFieldIndex } : { column: staticFieldIndex, row: i });
 				}
 			}
 
-			return emptyIndexes.length > 0;
+			return emptyIndexes;
 		},
 		[direction]
 	);
 
-	const checkPlayedWord = useCallback(() => {
-		const playedCells = getCellsWithNotLockedTiles();
-		const emptyCells = hasEmptyCellsBetween(playedCells, boardCells);
+	const setCellErrors = (coordinates: ITileCoordinates[]) => {
+		const newBoardCells = [...boardCells];
 
-		console.log(emptyCells);
-	}, [boardCells, getCellsWithNotLockedTiles, hasEmptyCellsBetween]);
+		for (let i = 0, len = coordinates.length; i < len; i++) {
+			const { column, row } = coordinates[i];
+			const cell = { ...newBoardCells[row][column] };
+
+			cell.invalidTile = true;
+
+			newBoardCells[row][column] = cell;
+		}
+
+		setBoardCells(newBoardCells);
+	};
+
+	const getNewWords = () => {};
+
+	const checkPlayedWord = useCallback(() => {
+		resetCellErrors();
+
+		const playedCells = getCellsWithNotLockedTiles();
+		const emptyCells = emptyCellsBetween(playedCells, boardCells);
+
+		if (emptyCells.length > 0) {
+			setCellErrors(emptyCells);
+
+			return false;
+		}
+
+		const newWords = getNewWords();
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -175,6 +200,26 @@ function App() {
 		[letterBag]
 	);
 
+	const resetCellErrors = () => {
+		const rows: IBoardCell[][] = [];
+
+		for (let i = 0, len1 = boardCells.length; i < len1; i++) {
+			const column: IBoardCell[] = [];
+
+			for (let ii = 0, len2 = boardCells[0].length; ii < len2; ii++) {
+				const cell = boardCells[i][ii];
+
+				cell.invalidTile = false;
+
+				column.push(cell);
+			}
+
+			rows.push(column);
+		}
+
+		setBoardCells(rows);
+	};
+
 	const playHandTile = (letter: string, coordinates: ITileCoordinates): ITile | null => {
 		const upperCaseLetter = letter.toUpperCase();
 		const currentHand = hand.slice();
@@ -186,6 +231,7 @@ function App() {
 				handTile.played = true;
 
 				setHand(currentHand);
+				resetCellErrors();
 
 				return handTile;
 			}
@@ -205,6 +251,7 @@ function App() {
 				handTile.played = false;
 
 				setHand(currentHand);
+				resetCellErrors();
 
 				return true;
 			}

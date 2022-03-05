@@ -166,7 +166,7 @@ body {
 		left: 0;
 		top: 0;
 		bottom: 0;
-		z-index: 8;
+		z-index: 5;
 	}
 
 	.instruction {
@@ -184,5 +184,32 @@ body {
 		transform: rotate(45deg);
 		background-color: var(--tile-color);
 		border-radius: 2px;
+	}
+
+	.invalid {
+		display: block;
+		z-index: 6;
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		background-color: lighten(red, 30%);
+		border: 1px solid lighten(red, 30%);
+		border-radius: 2px;
+	}
+}
+
+.blink {
+	opacity: 0;
+	animation: blink-animation 0.2s 4;
+	-webkit-animation: blink-animation 0.2s 4;
+}
+@keyframes blink-animation {
+	to {
+		opacity: 1;
+	}
+}
+@-webkit-keyframes blink-animation {
+	to {
+		opacity: 1;
 	}
 }
