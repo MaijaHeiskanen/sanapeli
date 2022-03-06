@@ -1,36 +1,37 @@
 import seedrandom, { PRNG } from "seedrandom";
+import { ILetter } from "../react-app-env";
 
-const letterAmounts: { [key: string]: number } = {
-	A: 10,
-	B: 1,
-	C: 1,
-	D: 1,
-	E: 8,
-	F: 1,
-	G: 1,
-	H: 2,
-	I: 10,
-	J: 2,
-	K: 5,
-	L: 5,
-	M: 3,
-	N: 9,
-	O: 5,
-	P: 2,
-	R: 2,
-	S: 7,
-	T: 9,
-	U: 4,
-	V: 2,
-	W: 1,
-	Y: 2,
-	Ä: 5,
-	Ö: 1,
+const letterAmounts: { [key: string]: { amount: number; value: number } } = {
+	A: { amount: 10, value: 1 },
+	B: { amount: 1, value: 8 },
+	C: { amount: 1, value: 10 },
+	D: { amount: 1, value: 7 },
+	E: { amount: 8, value: 1 },
+	F: { amount: 1, value: 8 },
+	G: { amount: 1, value: 7 },
+	H: { amount: 2, value: 4 },
+	I: { amount: 10, value: 1 },
+	J: { amount: 2, value: 4 },
+	K: { amount: 5, value: 2 },
+	L: { amount: 5, value: 2 },
+	M: { amount: 3, value: 3 },
+	N: { amount: 9, value: 1 },
+	O: { amount: 5, value: 2 },
+	P: { amount: 2, value: 4 },
+	R: { amount: 2, value: 4 },
+	S: { amount: 7, value: 1 },
+	T: { amount: 9, value: 1 },
+	U: { amount: 4, value: 3 },
+	V: { amount: 2, value: 4 },
+	W: { amount: 1, value: 8 },
+	Y: { amount: 2, value: 4 },
+	Ä: { amount: 5, value: 2 },
+	Ö: { amount: 1, value: 7 },
 	// jokeri: 2,
 };
 
 export class LetterBag {
-	letterBag: string[];
+	letterBag: ILetter[];
 	random: PRNG;
 
 	constructor(seed?: string) {
@@ -48,14 +49,14 @@ export class LetterBag {
 
 		for (let i = 0, len = letters.length; i < len; i++) {
 			const letter = letters[i];
-			const amount = letterAmounts[letter];
+			const { amount, value } = letterAmounts[letter];
 
 			for (let ii = 0; ii < amount; ii++) {
-				letterBag.push(letter);
+				letterBag.push({ char: letter, value });
 			}
 		}
 
-		const shuffledLetterBag: string[] = [];
+		const shuffledLetterBag: ILetter[] = [];
 
 		for (let i = 0, len = letterBag.length; i < len; i++) {
 			shuffledLetterBag.push(letterBag.splice(this.getRndInteger(0, letterBag.length - 1), 1)[0]);

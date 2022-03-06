@@ -53,7 +53,7 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 			onChange={onTileChanged}
 			disabled={locked || disabled}
 			className={classNames("tile", { played, locked, "has-letter": !isEmpty })}
-			value={letter || ""}
+			value={letter?.char || ""}
 		/>
 	);
 });

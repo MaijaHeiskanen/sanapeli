@@ -242,8 +242,6 @@ function App() {
 				}
 			}
 
-			console.log({ a: [...wordOnMainAxis], b: [...wordsOnSecondaryAxis] });
-
 			words.push(wordOnMainAxis, ...wordsOnSecondaryAxis);
 
 			return words;
@@ -262,10 +260,10 @@ function App() {
 			let text = "";
 
 			for (let ii = 0, len2 = word.length; ii < len2; ii++) {
-				const letter = word[ii].tile?.letter;
+				const char = word[ii].tile?.letter.char;
 
-				if (letter) {
-					text += letter;
+				if (char) {
+					text += char;
 				}
 			}
 
@@ -282,8 +280,66 @@ function App() {
 	}, []);
 
 	const calculatePoints = useCallback((words: IBoardCell[][]): number => {
+		let points = 0;
+
+		words.forEach((word) => {
+			let wordPoints = 0;
+			let wordMultiplier = 1;
+
+			word.forEach((cell) => {
+				let letterMultiplier = 1;
+			});
+		});
 		return 10;
 	}, []);
+
+	const fillHand = useCallback(
+		(existingHand: ITile[]) => {
+			if (!letterBag) return;
+
+			const newHand = existingHand.slice();
+
+			for (let i = newHand.length; i < HAND_SIZE; i++) {
+				const newLetter = letterBag.getNextLetter();
+
+				if (newLetter === null) {
+					break;
+				}
+
+				newHand.push({ letter: newLetter });
+			}
+
+			setHand(newHand);
+		},
+		[letterBag]
+	);
+
+	const removePlayedTilesFromHandAndFill = useCallback(() => {
+		const currentHand = [...hand];
+		const newHand = currentHand.filter((tile) => !tile.played);
+
+		fillHand(newHand);
+	}, [hand, fillHand]);
+
+	const lockCells = useCallback(
+		(cells: IBoardCell[]) => {
+			const newBoard = [...boardCells];
+
+			for (let i = 0, len = cells.length; i < len; i++) {
+				const cell = cells[i];
+				const { row, column } = cell.coordinates;
+
+				const tile = newBoard[row][column].tile;
+
+				if (tile) {
+					tile.locked = true;
+				}
+			}
+
+			setBoardCells(newBoard);
+		},
+		[boardCells]
+	);
 
 	const checkPlayedWord = useCallback(() => {
 		resetCellErrors();
@@ -338,11 +394,14 @@ function App() {
 			words.push(stringWord);
 		}
 
+		removePlayedTilesFromHandAndFill();
+		lockCells(playedCells);
+
 		turns.push({ playedWords: words, filledCells: playedCells, points });
 		console.log({ playedWords: words, filledCells: playedCells, points });
 
 		setTurns(turns);
-	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords]);
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -407,27 +466,6 @@ function App() {
 		return isSameRow || isSameColumn;
 	};
 
-	const fillHand = useCallback(
-		(existingHand: ITile[]) => {
-			if (!letterBag) return;
-
-			const newHand = existingHand?.slice();
-
-			for (let i = newHand.length; i < HAND_SIZE; i++) {
-				const newLetter = letterBag.getNextLetter();
-
-				if (newLetter === null) {
-					break;
-				}
-
-				newHand.push({ letter: newLetter });
-			}
-
-			setHand(newHand);
-		},
-		[letterBag]
-	);
-
 	const playHandTile = (letter: string, coordinates: ITileCoordinates): ITile | null => {
 		const upperCaseLetter = letter.toUpperCase();
 		const currentHand = hand.slice();
@@ -435,7 +473,7 @@ function App() {
 		for (let i = 0, len = currentHand.length; i < len; i++) {
 			const handTile = currentHand[i];
 
-			if (upperCaseLetter === handTile.letter && !handTile.played && alignedWithOtherPlayedTiles(coordinates)) {
+			if (upperCaseLetter === handTile.letter.char && !handTile.played && alignedWithOtherPlayedTiles(coordinates)) {
 				handTile.played = true;
 
 				setHand(currentHand);
@@ -455,7 +493,7 @@ function App() {
 		for (let i = 1, len = currentHand.length; i <= len; i++) {
 			const handTile = currentHand[len - i];
 
-			if (upperCaseLetter === handTile.letter && handTile.played) {
+			if (upperCaseLetter === handTile.letter.char && handTile.played) {
 				handTile.played = false;
 
 				setHand(currentHand);

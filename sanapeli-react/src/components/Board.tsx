@@ -35,7 +35,7 @@ export const Board = (props: {
 				setBoardCells(cells);
 
 				if (oldValue) {
-					unPlayHandTile(oldValue);
+					unPlayHandTile(oldValue.char);
 				}
 
 				if (!oldValue && playedTile) {

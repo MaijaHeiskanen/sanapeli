@@ -14,7 +14,7 @@ export const Hand = (props: { hand: ITile[] }) => {
 		if (newHandLength < HAND_SIZE) {
 			for (let i = newHandLength; i < HAND_SIZE; i++) {
 				newHand.push({
-					letter: "",
+					letter: { char: "", value: 0 },
 				});
 			}
 		}
