@@ -5,6 +5,7 @@ import { Board } from "./components/Board";
 import { Direction } from "./components/Direction";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { SpecialCell } from "./enums/SpecialCell";
 import { WriteDirection } from "./enums/WriteDirection";
 import { createBoard } from "./helpers/createBoard";
 import { LetterBag } from "./helpers/LetterBag";
@@ -279,18 +280,52 @@ function App() {
 		return [passingWords, failingWords];
 	}, []);
 
+	const getLetterMultiplierForSpecial = (special: SpecialCell | undefined) => {
+		switch (special) {
+			case SpecialCell.x2letter:
+				return 2;
+			case SpecialCell.x3letter:
+				return 3;
+			default:
+				return 1;
+		}
+	};
+
+	const getWordMultiplierForSpecial = (special: SpecialCell | undefined) => {
+		switch (special) {
+			case SpecialCell.start:
+			case SpecialCell.x2word:
+				return 2;
+			case SpecialCell.x3word:
+				return 3;
+			default:
+				return 1;
+		}
+	};
+
 	const calculatePoints = useCallback((words: IBoardCell[][]): number => {
 		let points = 0;
 
 		words.forEach((word) => {
+			debugger;
 			let wordPoints = 0;
 			let wordMultiplier = 1;
 
 			word.forEach((cell) => {
-				let letterMultiplier = 1;
+				const special = cell.special;
+				const tile = cell.tile;
+				let letterMultiplier = getLetterMultiplierForSpecial(special);
+
+				wordMultiplier *= getWordMultiplierForSpecial(special);
+
+				if (tile) {
+					wordPoints += letterMultiplier * tile.letter.value;
+				}
 			});
+
+			points += wordMultiplier * wordPoints;
 		});
-		return 10;
+		return points;
 	}, []);
 
 	const fillHand = useCallback(
@@ -438,7 +473,6 @@ function App() {
 			} else if (code === "Enter") {
 				preventDefault = true;
 				checkPlayedWord();
-				console.log("enter");
 			}
 
 			if (preventDefault) {

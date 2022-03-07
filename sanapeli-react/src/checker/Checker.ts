@@ -8,8 +8,6 @@ class CheckerClass {
 	}
 
 	public checkWord(word: string) {
-		console.log(word);
-
 		return this.validWords.has(word.toLowerCase());
 	}
 
