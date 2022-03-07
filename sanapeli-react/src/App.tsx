@@ -42,17 +42,30 @@ function App() {
 
 	const moveFocus = useCallback(
 		(coordinates: ITileCoordinates, direction: ITileCoordinates) => {
-			const { column, row } = coordinates;
-			const { column: moveColumn, row: moveRow } = direction;
-			const bTiles = boardCells.slice();
-			const rowLength = bTiles.length - 1;
-			const columnLength = rowLength ? bTiles[0].length - 1 : 0;
-			const newRow = row + moveRow;
-			const focusRow = newRow > rowLength ? (newRow % rowLength) - 1 : newRow < 0 ? rowLength : newRow;
-			const newColumn = column + moveColumn;
-			const focusColumn = newColumn > columnLength ? (newColumn % columnLength) - 1 : newColumn < 0 ? columnLength : newColumn;
-			const focusTile = bTiles[focusRow][focusColumn];
-			const input = focusTile?.inputRef?.current;
+			let focusCell: IBoardCell | undefined = undefined;
+
+			while (!focusCell) {
+				const { column, row } = coordinates;
+				const { column: moveColumn, row: moveRow } = direction;
+				const bTiles = boardCells.slice();
+				const rowLength = bTiles.length - 1;
+				const columnLength = rowLength ? bTiles[0].length - 1 : 0;
+				const newRow = row + moveRow;
+				const focusRow = newRow > rowLength ? (newRow % rowLength) - 1 : newRow < 0 ? rowLength : newRow;
+				const newColumn = column + moveColumn;
+				const focusColumn = newColumn > columnLength ? (newColumn % columnLength) - 1 : newColumn < 0 ? columnLength : newColumn;
+				const cell = bTiles[focusRow][focusColumn];
+
+				if (!cell.tile || !cell.tile.locked) {
+					focusCell = cell;
+					break;
+				}
+
+				direction.column = direction.column === 0 ? 0 : direction.column + direction.column;
+				direction.row = direction.row === 0 ? 0 : direction.row + direction.row;
+			}
+
+			const input = focusCell.inputRef?.current;
 
 			input?.focus();
 		},
@@ -492,53 +505,102 @@ function App() {
 		return c1.column === c2.column;
 	};
 
-	const alignedWithOtherPlayedTiles = (coordinates: ITileCoordinates) => {
-		const cellsWithPlayedTile = getCellsWithNotLockedTiles();
-		const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
-		const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
+	const alignedWithOtherPlayedTiles = useCallback(
+		(coordinates: ITileCoordinates) => {
+			const cellsWithPlayedTile = getCellsWithNotLockedTiles();
+			const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
+			const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
 
-		return isSameRow || isSameColumn;
-	};
+			return isSameRow || isSameColumn;
+		},
+		[getCellsWithNotLockedTiles]
+	);
 
-	const playHandTile = (letter: string, coordinates: ITileCoordinates): ITile | null => {
-		const upperCaseLetter = letter.toUpperCase();
-		const currentHand = hand.slice();
+	const playHandTile = useCallback(
+		(letter: string, coordinates: ITileCoordinates): ITile | null => {
+			const upperCaseLetter = letter.toUpperCase();
+			const currentHand = hand.slice();
 
-		for (let i = 0, len = currentHand.length; i < len; i++) {
-			const handTile = currentHand[i];
+			for (let i = 0, len = currentHand.length; i < len; i++) {
+				const handTile = currentHand[i];
 
-			if (upperCaseLetter === handTile.letter.char && !handTile.played && alignedWithOtherPlayedTiles(coordinates)) {
-				handTile.played = true;
+				if (upperCaseLetter === handTile.letter.char && !handTile.played && alignedWithOtherPlayedTiles(coordinates)) {
+					handTile.played = true;
 
-				setHand(currentHand);
-				resetCellErrors();
+					setHand(currentHand);
+					resetCellErrors();
 
-				return handTile;
+					return handTile;
+				}
 			}
-		}
 
-		return null;
-	};
+			return null;
+		},
+		[alignedWithOtherPlayedTiles, hand, resetCellErrors]
+	);
 
-	const unPlayHandTile = (letter: string): boolean => {
-		const upperCaseLetter = letter.toUpperCase();
-		const currentHand = hand.slice();
+	const unPlayHandTile = useCallback(
+		(letter: string): boolean => {
+			const upperCaseLetter = letter.toUpperCase();
+			const currentHand = hand.slice();
 
-		for (let i = 1, len = currentHand.length; i <= len; i++) {
-			const handTile = currentHand[len - i];
+			for (let i = 1, len = currentHand.length; i <= len; i++) {
+				const handTile = currentHand[len - i];
 
-			if (upperCaseLetter === handTile.letter.char && handTile.played) {
-				handTile.played = false;
+				if (upperCaseLetter === handTile.letter.char && handTile.played) {
+					handTile.played = false;
 
-				setHand(currentHand);
-				resetCellErrors();
+					setHand(currentHand);
+					resetCellErrors();
 
-				return true;
+					return true;
+				}
 			}
-		}
 
-		return false;
-	};
+			return false;
+		},
+		[hand, resetCellErrors]
+	);
+
+	const tileChanged = useCallback(
+		(coordinates: ITileCoordinates, value: string | undefined) => {
+			const { column, row } = coordinates;
+			const cells = boardCells.slice(0);
+			const cell = cells[row][column];
+
+			if (cell) {
+				if (!Checker.checkLetter(value)) return;
+
+				let playedTile = null;
+				const oldValue = cell.tile?.letter;
+
+				if (!value) {
+					cell.tile = undefined;
+				} else if ((playedTile = playHandTile(value, coordinates)) !== null) {
+					cell.tile = playedTile;
+				}
+
+				setBoardCells(cells);
+
+				if (oldValue) {
+					unPlayHandTile(oldValue.char);
+				}
+
+				if (!oldValue && playedTile) {
+					const moveDirection = { row: 0, column: 0 };
+
+					if (direction === WriteDirection.Right) {
+						moveDirection.column = 1;
+					} else if (direction === WriteDirection.Down) {
+						moveDirection.row = 1;
+					}
+
+					moveFocus(coordinates, moveDirection);
+				}
+			}
+		},
+		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile]
+	);
 
 	useEffect(() => {
 		const letterBag = new LetterBag();
@@ -552,7 +614,7 @@ function App() {
 	return (
 		<div className='app'>
 			<GameArea>
-				<Board playHandTile={playHandTile} unPlayHandTile={unPlayHandTile} direction={direction} boardCells={boardCells} setBoardCells={setBoardCells} moveFocus={moveFocus} />
+				<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />
 				<Direction direction={direction} />
 				<Hand hand={hand} />
 			</GameArea>

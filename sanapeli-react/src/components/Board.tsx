@@ -1,58 +1,16 @@
-import { useCallback, useMemo } from "react";
-import { Checker } from "../checker/Checker";
+import { useMemo } from "react";
+
 import { WriteDirection } from "../enums/WriteDirection";
-import { IBoardCell, ITile, ITileCoordinates } from "../react-app-env";
+import { IBoardCell, ITileCoordinates } from "../react-app-env";
 import { Cell } from "./Cell";
 
 export const Board = (props: {
 	direction: WriteDirection;
 	boardCells: IBoardCell[][];
-	setBoardCells: React.Dispatch<React.SetStateAction<IBoardCell[][]>>;
-	playHandTile: (letter: string, coordinates: ITileCoordinates) => ITile | null;
-	unPlayHandTile: (letter: string) => boolean;
+	tileChanged: (coordinates: ITileCoordinates, value: string | undefined) => void;
 	moveFocus: (coordinates: ITileCoordinates, direction: ITileCoordinates) => void;
 }) => {
-	const { direction, boardCells, setBoardCells, playHandTile, unPlayHandTile, moveFocus } = props;
-
-	const tileChanged = useCallback(
-		(coordinates: ITileCoordinates, value: string | undefined) => {
-			const { column, row } = coordinates;
-			const cells = boardCells.slice(0);
-			const cell = cells[row][column];
-
-			if (cell) {
-				if (!Checker.checkLetter(value)) return;
-
-				let playedTile = null;
-				const oldValue = cell.tile?.letter;
-
-				if (!value) {
-					cell.tile = undefined;
-				} else if ((playedTile = playHandTile(value, coordinates)) !== null) {
-					cell.tile = playedTile;
-				}
-
-				setBoardCells(cells);
-
-				if (oldValue) {
-					unPlayHandTile(oldValue.char);
-				}
-
-				if (!oldValue && playedTile) {
-					let nextTile = cells[row][column + 1];
-
-					if (direction === WriteDirection.Right) {
-						nextTile = cells[row][column + 1];
-					} else if (direction === WriteDirection.Down) {
-						nextTile = cells[row + 1][column];
-					}
-
-					nextTile?.inputRef?.current?.focus();
-				}
-			}
-		},
-		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile]
-	);
+	const { direction, boardCells, tileChanged, moveFocus } = props;
 
 	const boardRows: JSX.Element[] = useMemo(() => {
 		const rows: JSX.Element[][] = [];
