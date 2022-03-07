@@ -5,6 +5,7 @@ import { Board } from "./components/Board";
 import { Direction } from "./components/Direction";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { PointSheet } from "./components/PointSheet";
 import { SpecialCell } from "./enums/SpecialCell";
 import { WriteDirection } from "./enums/WriteDirection";
 import { createBoard } from "./helpers/createBoard";
@@ -325,7 +326,6 @@ function App() {
 		let points = 0;
 
 		words.forEach((word) => {
-			debugger;
 			let wordPoints = 0;
 			let wordMultiplier = 1;
 
@@ -343,6 +343,7 @@ function App() {
 
 			points += wordMultiplier * wordPoints;
 		});
+
 		return points;
 	}, []);
 
@@ -440,7 +441,7 @@ function App() {
 				const letter = word[ii].tile?.letter;
 
 				if (letter) {
-					stringWord += letter;
+					stringWord += letter.char;
 				}
 			}
 
@@ -450,10 +451,10 @@ function App() {
 		removePlayedTilesFromHandAndFill();
 		lockCells(playedCells);
 
-		turns.push({ playedWords: words, filledCells: playedCells, points });
-		console.log({ playedWords: words, filledCells: playedCells, points });
+		const newTurns = [...turns];
+		newTurns.push({ playedWords: words, filledCells: playedCells, points });
 
-		setTurns(turns);
+		setTurns(newTurns);
 	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells]);
 
 	const keyDownCallback = useCallback(
@@ -604,7 +605,7 @@ function App() {
 				}
 			}
 		},
-		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile]
+		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus]
 	);
 
 	useEffect(() => {
@@ -614,15 +615,20 @@ function App() {
 
 	useEffect(() => {
 		fillHand(hand);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [letterBag]);
+
+	const { startAmount, currentAmount } = letterBag?.getLetterAmounts() || {};
 
 	return (
 		<div className='app'>
-			<GameArea>
-				<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />
-				<Direction direction={direction} />
-				<Hand hand={hand} />
-			</GameArea>
+			{`${currentAmount} / ${startAmount} kirjainta pussissa`}
+			<GameArea
+				pointShteet={<PointSheet turns={turns} />}
+				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
+				direction={<Direction direction={direction} />}
+				hand={<Hand hand={hand} />}
+			/>
 		</div>
 	);
 }

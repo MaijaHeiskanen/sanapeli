@@ -31,12 +31,14 @@ const letterAmounts: { [key: string]: { amount: number; value: number } } = {
 };
 
 export class LetterBag {
-	letterBag: ILetter[];
-	random: PRNG;
+	private amountOfLettersAtBeginning: number;
+	private letterBag: ILetter[];
+	private random: PRNG;
 
 	constructor(seed?: string) {
 		this.random = seedrandom(seed);
 		this.letterBag = this.createBag();
+		this.amountOfLettersAtBeginning = this.letterBag.length;
 	}
 
 	private getRndInteger(min: number, max: number) {
@@ -63,6 +65,10 @@ export class LetterBag {
 		}
 
 		return shuffledLetterBag;
+	}
+
+	public getLetterAmounts(): { currentAmount: number; startAmount: number } {
+		return { currentAmount: this.letterBag.length, startAmount: this.amountOfLettersAtBeginning };
 	}
 
 	public getLetters() {
