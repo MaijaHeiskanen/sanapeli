@@ -42,11 +42,13 @@ function App() {
 
 	const moveFocus = useCallback(
 		(coordinates: ITileCoordinates, direction: ITileCoordinates) => {
+			const moveDirection = { ...direction };
 			let focusCell: IBoardCell | undefined = undefined;
+			let i = 0;
 
-			while (!focusCell) {
+			while (!focusCell && i < BOARD_SIZE) {
 				const { column, row } = coordinates;
-				const { column: moveColumn, row: moveRow } = direction;
+				const { column: moveColumn, row: moveRow } = moveDirection;
 				const bTiles = boardCells.slice();
 				const rowLength = bTiles.length - 1;
 				const columnLength = rowLength ? bTiles[0].length - 1 : 0;
@@ -61,9 +63,12 @@ function App() {
 					break;
 				}
 
-				direction.column = direction.column === 0 ? 0 : direction.column + direction.column;
-				direction.row = direction.row === 0 ? 0 : direction.row + direction.row;
+				moveDirection.column = direction.column === 0 ? 0 : moveDirection.column + (direction.column > 0 ? 1 : -1);
+				moveDirection.row = direction.row === 0 ? 0 : moveDirection.row + (direction.row > 0 ? 1 : -1);
+				i++;
 			}
+
+			if (!focusCell) return;
 
 			const input = focusCell.inputRef?.current;
 
