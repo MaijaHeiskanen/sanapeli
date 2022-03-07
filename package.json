@@ -1,8 +1,9 @@
 {
-  "name": "sanapeli-react",
+  "name": "sanapeli",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "homepage": "https://maijaheiskanen.github.io/sanapeli/",
   "dependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
@@ -13,6 +14,7 @@
     "@types/react-dom": "^17.0.9",
     "@types/seedrandom": "^3.0.2",
     "classnames": "^2.3.1",
+    "gh-pages": "^3.2.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
@@ -25,7 +27,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -b build -d build"
   },
   "eslintConfig": {
     "extends": [
