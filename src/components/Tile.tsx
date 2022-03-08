@@ -14,6 +14,7 @@ interface TileProps {
 export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, ref: ForwardedRef<HTMLInputElement>) => {
 	const { disabled, tile, onFocus, onBlur, onChange, onKeyDown } = props;
 	const { letter, played, locked } = tile || {};
+	const { char, value } = letter || {};
 
 	const onTileFocused = (event: FocusEvent<HTMLInputElement>) => {
 		event.currentTarget.setSelectionRange(event.currentTarget.value.length, event.currentTarget.value.length);
@@ -44,16 +45,19 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 	const isEmpty = !letter;
 
 	return (
-		<input
-			type={"text"}
-			ref={ref}
-			onKeyDown={onTileKeyDown}
-			onFocus={onTileFocused}
-			onBlur={onTileBlurred}
-			onChange={onTileChanged}
-			disabled={locked || disabled}
-			className={classNames("tile", { played, locked, "has-letter": !isEmpty })}
-			value={letter?.char || ""}
-		/>
+		<>
+			<input
+				type={"text"}
+				ref={ref}
+				onKeyDown={onTileKeyDown}
+				onFocus={onTileFocused}
+				onBlur={onTileBlurred}
+				onChange={onTileChanged}
+				disabled={locked || disabled}
+				className={classNames("tile", { played, locked, "has-letter": !isEmpty })}
+				value={char || ""}
+			/>
+			{value && <span className='value'>{value}</span>}
+		</>
 	);
 });

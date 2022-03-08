@@ -212,6 +212,14 @@ body {
 		}
 	}
 
+	> .value {
+		z-index: 11;
+		font-size: 14px;
+		position: absolute;
+		bottom: 1px;
+		right: 1px;
+	}
+
 	.star {
 		fill: var(--start);
 		position: absolute;
