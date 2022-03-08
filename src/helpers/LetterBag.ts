@@ -1,7 +1,15 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { ILetter } from "../react-app-env";
 
-const letterAmounts: { [key: string]: { amount: number; value: number } } = {
+interface LetterAmounts {
+	[key: string]: { amount: number };
+}
+
+interface LetterAmountsAndValues {
+	[key: string]: { amount: number; value: number };
+}
+
+const letterAmounts: LetterAmountsAndValues = {
 	A: { amount: 10, value: 1 },
 	B: { amount: 1, value: 8 },
 	C: { amount: 1, value: 10 },
@@ -34,11 +42,13 @@ export class LetterBag {
 	private amountOfLettersAtBeginning: number;
 	private letterBag: ILetter[];
 	private random: PRNG;
+	private amountOfEachLetter: LetterAmounts;
 
 	constructor(seed?: string) {
 		this.random = seedrandom(seed);
 		this.letterBag = this.createBag();
 		this.amountOfLettersAtBeginning = this.letterBag.length;
+		this.amountOfEachLetter = letterAmounts;
 	}
 
 	private getRndInteger(min: number, max: number) {
@@ -67,8 +77,8 @@ export class LetterBag {
 		return shuffledLetterBag;
 	}
 
-	public getLetterAmounts(): { currentAmount: number; startAmount: number } {
-		return { currentAmount: this.letterBag.length, startAmount: this.amountOfLettersAtBeginning };
+	public getLetterAmounts(): { currentAmount: number; startAmount: number; amountOfEachLetter: LetterAmounts } {
+		return { currentAmount: this.letterBag.length, startAmount: this.amountOfLettersAtBeginning, amountOfEachLetter: this.amountOfEachLetter };
 	}
 
 	public getLetters() {

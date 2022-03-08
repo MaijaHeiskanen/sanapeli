@@ -403,6 +403,22 @@ function App() {
 		[boardCells]
 	);
 
+	const getCoordinates = (words: IBoardCell[][]) => {
+		const coordinates: ITileCoordinates[] = [];
+
+		for (let i = 0, len = words.length; i < len; i++) {
+			const word = words[i];
+
+			for (let ii = 0, len2 = word.length; ii < len2; ii++) {
+				const cell = word[ii];
+
+				coordinates.push(cell.coordinates);
+			}
+		}
+
+		return coordinates;
+	};
+
 	const checkPlayedWord = useCallback(() => {
 		resetCellErrors();
 
@@ -416,23 +432,60 @@ function App() {
 		}
 
 		const newWords = getNewWords(playedCells, boardCells);
+
+		if (turns.length === 0) {
+			let usesStartingCell = false;
+
+			for (let i = 0, len = newWords.length; i < len; i++) {
+				const word = newWords[i];
+
+				for (let ii = 0, len2 = word.length; ii < len2; ii++) {
+					const cell = word[ii];
+
+					if (cell.special === SpecialCell.start) {
+						usesStartingCell = true;
+						break;
+					}
+				}
+			}
+
+			if (!usesStartingCell) {
+				const invalidCoordinates = getCoordinates(newWords);
+
+				setCellErrors(invalidCoordinates);
+
+				return false;
+			}
+		}
+
+		if (newWords.length === 1 && turns.length > 0) {
+			const word = newWords[0];
+			let usesExistingCell = false;
+
+			for (let i = 0, len = word.length; i < len; i++) {
+				const cell = word[i];
+
+				if (cell.tile && cell.tile.locked) {
+					usesExistingCell = true;
+					break;
+				}
+			}
+
+			if (!usesExistingCell) {
+				const invalidCoordinates = getCoordinates(newWords);
+
+				setCellErrors(invalidCoordinates);
+
+				return false;
+			}
+		}
 		console.log({ newWords });
 
 		const [passingWords, failingWords] = validateWords(newWords);
 		console.log({ passingWords, failingWords });
 
 		if (failingWords.length > 0) {
-			const invalidCoordinates: ITileCoordinates[] = [];
-
-			for (let i = 0, len = failingWords.length; i < len; i++) {
-				const word = failingWords[i];
-
-				for (let ii = 0, len2 = word.length; ii < len2; ii++) {
-					const cell = word[ii];
-					const coordinates = cell.coordinates;
-					invalidCoordinates.push(coordinates);
-				}
-			}
+			const invalidCoordinates = getCoordinates(failingWords);
 
 			setCellErrors(invalidCoordinates);
 
@@ -637,12 +690,7 @@ function App() {
 	return (
 		<div className='app'>
 			{`${currentAmount} / ${startAmount} kirjainta pussissa`}
-			<GameArea
-				pointShteet={<PointSheet turns={turns} />}
-				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
-				direction={<Direction direction={direction} />}
-				hand={<Hand hand={hand} />}
-			/>
+			<GameArea pointShteet={<PointSheet turns={turns} />} board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />} hand={<Hand hand={hand} />} />
 		</div>
 	);
 }

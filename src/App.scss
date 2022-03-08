@@ -83,6 +83,12 @@ body {
 .direction {
 	font-size: 20px;
 	padding-bottom: 1em;
+
+	::after {
+		content: "\1F63B";
+		margin: -1em;
+		position: absolute;
+	}
 }
 
 .hand {
@@ -196,6 +202,7 @@ body {
 		align-items: center;
 		justify-content: center;
 		text-transform: capitalize;
+		content: "";
 
 		&:disabled {
 			cursor: default;
@@ -208,16 +215,16 @@ body {
 		}
 
 		&:focus:not(.has-letter) {
-			opacity: 0.6;
+			// opacity: 0.6;
 		}
 	}
 
 	> .value {
 		z-index: 11;
-		font-size: 14px;
+		font-size: 15px;
 		position: absolute;
-		bottom: 1px;
-		right: 1px;
+		bottom: 0px;
+		right: 2px;
 	}
 
 	.star {
@@ -256,6 +263,24 @@ body {
 		background-color: lighten(red, 30%);
 		border: 1px solid lighten(red, 30%);
 		border-radius: 2px;
+	}
+
+	> .tile:focus + .direction-indicator {
+		display: block;
+		width: calc(100% - 0.5em);
+		height: calc(100% - 0.5em);
+		position: absolute;
+		background-color: white;
+		opacity: 0.6;
+		border-radius: 2px;
+	}
+
+	> .tile:focus + .direction-indicator.right {
+		transform: translate(1em, 0) rotate(45deg);
+	}
+
+	> .tile:focus + .direction-indicator.down {
+		transform: translate(0, 1em) rotate(45deg);
 	}
 }
 

@@ -90,7 +90,7 @@ export const Cell = forwardRef<HTMLInputElement, CellProps>((props: CellProps, r
 			{invalidTile && <div className='invalid blink'></div>}
 			{special === SpecialCell.start && <Star />}
 			{instructionText && <div className='instruction'>{instructionText}</div>}
-			<Tile ref={ref} tile={tile} onFocus={onTileFocused} onChange={onTileChanged} onKeyDown={onKeyDown} />
+			<Tile ref={ref} tile={tile} direction={direction} onFocus={onTileFocused} onChange={onTileChanged} onKeyDown={onKeyDown} />
 		</span>
 	);
 });

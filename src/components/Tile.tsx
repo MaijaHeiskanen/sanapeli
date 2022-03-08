@@ -1,10 +1,12 @@
 import classNames from "classnames";
 import React, { ChangeEvent, FocusEvent, ForwardedRef, forwardRef, KeyboardEvent } from "react";
+import { WriteDirection } from "../enums/WriteDirection";
 import { ITile } from "../react-app-env";
 
 interface TileProps {
 	disabled?: boolean;
 	tile?: ITile;
+	direction?: WriteDirection;
 	onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
 	onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -12,7 +14,7 @@ interface TileProps {
 }
 
 export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, ref: ForwardedRef<HTMLInputElement>) => {
-	const { disabled, tile, onFocus, onBlur, onChange, onKeyDown } = props;
+	const { disabled, tile, direction, onFocus, onBlur, onChange, onKeyDown } = props;
 	const { letter, played, locked } = tile || {};
 	const { char, value } = letter || {};
 
@@ -57,6 +59,7 @@ export const Tile = forwardRef<HTMLInputElement, TileProps>((props: TileProps, r
 				className={classNames("tile", { played, locked, "has-letter": !isEmpty })}
 				value={char || ""}
 			/>
+			{direction && <span className={classNames("direction-indicator", direction)} />}
 			{value && <span className='value'>{value}</span>}
 		</>
 	);
