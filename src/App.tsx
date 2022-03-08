@@ -339,9 +339,11 @@ function App() {
 			word.forEach((cell) => {
 				const special = cell.special;
 				const tile = cell.tile;
-				let letterMultiplier = getLetterMultiplierForSpecial(special);
+				const locked = tile?.locked;
 
-				wordMultiplier *= getWordMultiplierForSpecial(special);
+				let letterMultiplier = locked ? 1 : getLetterMultiplierForSpecial(special);
+
+				wordMultiplier *= locked ? 1 : getWordMultiplierForSpecial(special);
 
 				if (tile) {
 					wordPoints += letterMultiplier * tile.letter.value;
