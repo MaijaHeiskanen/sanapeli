@@ -13,11 +13,33 @@ export const PointSheet = (props: PointSheetProps) => {
 
 		totalPoints += points;
 
+		const wordLinks = [];
+		const word = playedWords[0];
+
+		wordLinks.push(
+			<span className='word'>
+				<a className='link' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word}`}>
+					{word}
+				</a>
+				{playedWords.length > 1 && ", "}
+			</span>
+		);
+
+		for (let i = 1, len = playedWords.length; i < len; i++) {
+			const word = playedWords[i];
+
+			wordLinks.push(
+				<a className='word' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word}`}>
+					{word}
+				</a>
+			);
+		}
+
 		return (
 			<div className='row' key={index + 1}>
 				<div className='column index'>{index + 1}</div>
 				<div className='column points'>{points}</div>
-				<div className='column words'>{playedWords.join(", ")}</div>
+				<div className='column words'>{wordLinks}</div>
 			</div>
 		);
 	});
