@@ -4,7 +4,7 @@ class CheckerClass {
 	validWords: Set<string>;
 
 	constructor() {
-		this.validWords = new Set(Object.keys(words));
+		this.validWords = new Set(Object.keys(words).map((word) => word.toLocaleLowerCase()));
 	}
 
 	public checkWord(word: string) {

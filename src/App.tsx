@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import "./App.scss";
 import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
-import { Direction } from "./components/Direction";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
 import { PointSheet } from "./components/PointSheet";
@@ -530,38 +529,42 @@ function App() {
 			let preventDefault = false;
 
 			if (code === "Tab") {
+				console.log("tab");
+
 				preventDefault = true;
 
 				const playedCells = getCellsWithNotLockedTiles();
 				const amountOfPlayedCells = playedCells.length;
 
-				if (amountOfPlayedCells > 1) return;
+				if (amountOfPlayedCells < 2) {
+					const newDirection = direction === WriteDirection.Right ? WriteDirection.Down : WriteDirection.Right;
 
-				const newDirection = direction === WriteDirection.Right ? WriteDirection.Down : WriteDirection.Right;
+					setDirection(newDirection);
 
-				setDirection(newDirection);
+					if (amountOfPlayedCells === 1) {
+						const currentCoordinates = playedCells[amountOfPlayedCells - 1].coordinates;
 
-				if (amountOfPlayedCells === 1) {
-					const currentCoordinates = playedCells[amountOfPlayedCells - 1].coordinates;
+						if (currentCoordinates) {
+							const moveDirection = { row: 0, column: 0 };
 
-					if (currentCoordinates) {
-						const moveDirection = { row: 0, column: 0 };
+							if (newDirection === WriteDirection.Right) {
+								moveDirection.column = 1;
+							} else if (newDirection === WriteDirection.Down) {
+								moveDirection.row = 1;
+							}
 
-						if (newDirection === WriteDirection.Right) {
-							moveDirection.column = 1;
-						} else if (newDirection === WriteDirection.Down) {
-							moveDirection.row = 1;
+							moveFocus(currentCoordinates, moveDirection);
 						}
-
-						moveFocus(currentCoordinates, moveDirection);
 					}
 				}
 			} else if (code === "Enter") {
+				console.log("enter");
 				preventDefault = true;
 				checkPlayedWord();
 			}
 
 			if (preventDefault) {
+				console.log("prevdef");
 				event.preventDefault();
 			}
 		},
@@ -578,15 +581,52 @@ function App() {
 		return c1.column === c2.column;
 	};
 
-	const alignedWithOtherPlayedTiles = useCallback(
+	const alignedWithWriteDirection = useCallback(
 		(coordinates: ITileCoordinates) => {
 			const cellsWithPlayedTile = getCellsWithNotLockedTiles();
-			const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
-			const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
 
-			return isSameRow || isSameColumn;
+			if (cellsWithPlayedTile.length < 2) return true;
+
+			const directionIsRight = direction === WriteDirection.Right;
+			let isAligned = false;
+
+			if (directionIsRight) {
+				const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
+
+				isAligned = isSameRow;
+			} else {
+				const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
+
+				isAligned = isSameColumn;
+			}
+
+			return isAligned;
 		},
-		[getCellsWithNotLockedTiles]
+		[getCellsWithNotLockedTiles, direction]
+	);
+
+	const shouldChangeDirection = useCallback(
+		(coordinates: ITileCoordinates) => {
+			const cellsWithPlayedTile = getCellsWithNotLockedTiles();
+
+			if (cellsWithPlayedTile.length < 2) return false;
+
+			const directionIsRight = direction === WriteDirection.Right;
+			let shouldChange = false;
+
+			if (directionIsRight) {
+				const isSameColumn = cellsWithPlayedTile.every((playedCell) => sameColumn(playedCell.coordinates, coordinates));
+
+				shouldChange = isSameColumn;
+			} else {
+				const isSameRow = cellsWithPlayedTile.every((playedCell) => sameRow(playedCell.coordinates, coordinates));
+
+				shouldChange = isSameRow;
+			}
+
+			return shouldChange;
+		},
+		[getCellsWithNotLockedTiles, direction]
 	);
 
 	const playHandTile = useCallback(
@@ -597,7 +637,7 @@ function App() {
 			for (let i = 0, len = currentHand.length; i < len; i++) {
 				const handTile = currentHand[i];
 
-				if (upperCaseLetter === handTile.letter.char && !handTile.played && alignedWithOtherPlayedTiles(coordinates)) {
+				if (upperCaseLetter === handTile.letter.char && !handTile.played && alignedWithWriteDirection(coordinates)) {
 					handTile.played = true;
 
 					setHand(currentHand);
@@ -609,7 +649,7 @@ function App() {
 
 			return null;
 		},
-		[alignedWithOtherPlayedTiles, hand, resetCellErrors]
+		[alignedWithWriteDirection, hand, resetCellErrors]
 	);
 
 	const unPlayHandTile = useCallback(
@@ -660,19 +700,26 @@ function App() {
 				}
 
 				if (!oldValue && playedTile) {
+					const changeDirection = shouldChangeDirection(coordinates);
 					const moveDirection = { row: 0, column: 0 };
 
-					if (direction === WriteDirection.Right) {
+					const directionIsRight = changeDirection ? !(direction === WriteDirection.Right) : direction === WriteDirection.Right;
+
+					if (directionIsRight) {
 						moveDirection.column = 1;
-					} else if (direction === WriteDirection.Down) {
+					} else {
 						moveDirection.row = 1;
+					}
+
+					if (changeDirection) {
+						setDirection(directionIsRight ? WriteDirection.Right : WriteDirection.Down);
 					}
 
 					moveFocus(coordinates, moveDirection);
 				}
 			}
 		},
-		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus]
+		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection]
 	);
 
 	useEffect(() => {
