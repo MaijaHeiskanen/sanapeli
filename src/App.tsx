@@ -4,6 +4,7 @@ import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { Info } from "./components/Info";
 import { Menu } from "./components/Menu";
 import { PointSheet } from "./components/PointSheet";
 import { SpecialCell } from "./enums/SpecialCell";
@@ -747,10 +748,9 @@ function App() {
 
 	return (
 		<div className='app'>
-			{`${currentAmount} / ${startAmount} kirjainta pussissa`}
-
 			<GameArea
 				pointShteet={<PointSheet turns={turns} />}
+				info={<Info startAmount={startAmount} currentAmount={currentAmount} />}
 				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
 				hand={<Hand hand={hand} />}
 				menu={<Menu newGame={newGame} />}
