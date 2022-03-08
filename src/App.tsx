@@ -262,7 +262,15 @@ function App() {
 				}
 			}
 
-			words.push(wordOnMainAxis, ...wordsOnSecondaryAxis);
+			const wordOnMainAxisIsTooShort = wordOnMainAxis.length < 2;
+
+			if (wordOnMainAxisIsTooShort && wordsOnSecondaryAxis.length < 1) {
+				words.push(wordOnMainAxis);
+			} else if (wordOnMainAxisIsTooShort && wordsOnSecondaryAxis.length > 0) {
+				words.push(...wordsOnSecondaryAxis);
+			} else {
+				words.push(wordOnMainAxis, ...wordsOnSecondaryAxis);
+			}
 
 			return words;
 		},
@@ -287,7 +295,7 @@ function App() {
 				}
 			}
 
-			const check = checker.checkWord(text);
+			const check = checker.checkWord(text) && word.length > 1;
 
 			if (check) {
 				passingWords.push(word);
@@ -408,8 +416,10 @@ function App() {
 		}
 
 		const newWords = getNewWords(playedCells, boardCells);
+		console.log({ newWords });
 
 		const [passingWords, failingWords] = validateWords(newWords);
+		console.log({ passingWords, failingWords });
 
 		if (failingWords.length > 0) {
 			const invalidCoordinates: ITileCoordinates[] = [];
@@ -428,6 +438,8 @@ function App() {
 
 			return false;
 		}
+
+		if (passingWords.length < 1) return false;
 
 		const points = calculatePoints(passingWords);
 
@@ -455,6 +467,8 @@ function App() {
 		newTurns.push({ playedWords: words, filledCells: playedCells, points });
 
 		setTurns(newTurns);
+
+		return true;
 	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells]);
 
 	const keyDownCallback = useCallback(
