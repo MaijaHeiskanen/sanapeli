@@ -55,7 +55,7 @@ export const PointSheet = (props: PointSheetProps) => {
 			{rows}
 
 			<div className='row footer' key={"footer"}>
-				<div className='column index'></div>
+				<div className='column index'>Yht.</div>
 				<div className='column points'>{totalPoints}</div>
 				<div className='column words'></div>
 			</div>

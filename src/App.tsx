@@ -4,6 +4,7 @@ import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { Menu } from "./components/Menu";
 import { PointSheet } from "./components/PointSheet";
 import { SpecialCell } from "./enums/SpecialCell";
 import { WriteDirection } from "./enums/WriteDirection";
@@ -22,10 +23,6 @@ function App() {
 	const [hand, setHand] = useState<ITile[]>([]);
 	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 	const [turns, setTurns] = useState<ITurn[]>([]);
-
-	useEffect(() => {
-		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
-	}, []);
 
 	const getCellsWithNotLockedTiles = useCallback(() => {
 		const cellsWithNotLockedTiles: IBoardCell[] = [];
@@ -724,6 +721,18 @@ function App() {
 		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection]
 	);
 
+	const newGame = () => {
+		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
+		const letterBag = new LetterBag();
+		setLetterBag(letterBag);
+		setHand([]);
+		setTurns([]);
+	};
+
+	useEffect(() => {
+		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
+	}, []);
+
 	useEffect(() => {
 		const letterBag = new LetterBag();
 		setLetterBag(letterBag);
@@ -739,7 +748,13 @@ function App() {
 	return (
 		<div className='app'>
 			{`${currentAmount} / ${startAmount} kirjainta pussissa`}
-			<GameArea pointShteet={<PointSheet turns={turns} />} board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />} hand={<Hand hand={hand} />} />
+
+			<GameArea
+				pointShteet={<PointSheet turns={turns} />}
+				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
+				hand={<Hand hand={hand} />}
+				menu={<Menu newGame={newGame} />}
+			/>
 		</div>
 	);
 }

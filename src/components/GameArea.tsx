@@ -4,10 +4,11 @@ type GameAreaProps = {
 	pointShteet: React.ReactElement;
 	board: React.ReactElement;
 	hand: React.ReactElement;
+	menu: React.ReactElement;
 };
 
 export const GameArea = (props: GameAreaProps) => {
-	const { pointShteet, board, hand } = props;
+	const { pointShteet, board, hand, menu } = props;
 
 	return (
 		<div className='gamearea'>
@@ -16,7 +17,7 @@ export const GameArea = (props: GameAreaProps) => {
 				{board}
 				{hand}
 			</div>
-			<div className='side'></div>
+			<div className='side right'>{menu}</div>
 		</div>
 	);
 };
