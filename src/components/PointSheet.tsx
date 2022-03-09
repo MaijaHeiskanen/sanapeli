@@ -27,8 +27,8 @@ export const PointSheet = (props: PointSheetProps) => {
 							{word}
 						</a>
 					)}
-					{", "}
-				</span>
+				</span>,
+				", "
 			);
 		}
 
