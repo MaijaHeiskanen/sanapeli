@@ -13,15 +13,15 @@ export const GameArea = (props: GameAreaProps) => {
 
 	return (
 		<div className='gamearea'>
-			<div className='side'>
-				{info}
-				{pointShteet}
-			</div>
+			<div className='side'>{pointShteet}</div>
 			<div className='center'>
 				{board}
 				{hand}
 			</div>
-			<div className='side right'>{menu}</div>
+			<div className='side right'>
+				{menu}
+				{info}
+			</div>
 		</div>
 	);
 };

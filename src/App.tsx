@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.scss";
 import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
@@ -10,20 +10,41 @@ import { PointSheet } from "./components/PointSheet";
 import { SpecialCell } from "./enums/SpecialCell";
 import { WriteDirection } from "./enums/WriteDirection";
 import { createBoard } from "./helpers/createBoard";
-import { LetterBag } from "./helpers/LetterBag";
+import { ILetterAmounts, LetterBag } from "./helpers/LetterBag";
 import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 import { IBoardCell, ITile, ITileCoordinates, ITurn } from "./react-app-env";
 
 export const BOARD_SIZE = 15;
 export const HAND_SIZE = 7;
+export const SHOW_HIGHSCORES = 5;
 
 function App() {
+	const [highscores, setHighscores] = useLocalStorage<number[]>("highscores", []);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
 	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
 	const [hand, setHand] = useState<ITile[]>([]);
 	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 	const [turns, setTurns] = useState<ITurn[]>([]);
+	const [startAmount, setStartAmount] = useState<number | undefined>();
+	const [currentAmount, setCurrentAmount] = useState<number | undefined>();
+	const [amountOfEachLetter, setAmountOfEachLetter] = useState<ILetterAmounts | undefined>();
+	const isBoardEmpty = useMemo(() => {
+		for (let i = 0, len = boardCells.length; i < len; i++) {
+			const row = boardCells[i];
+
+			for (let ii = 0, len2 = row.length; ii < len2; ii++) {
+				const cell = row[ii];
+
+				if (cell.tile?.locked) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}, [boardCells]);
 
 	const getCellsWithNotLockedTiles = useCallback(() => {
 		const cellsWithNotLockedTiles: IBoardCell[] = [];
@@ -424,6 +445,8 @@ function App() {
 		const playedCells = getCellsWithNotLockedTiles();
 		const emptyCells = emptyCellsBetween(playedCells, boardCells);
 
+		console.log(isBoardEmpty);
+
 		if (emptyCells.length > 0) {
 			setCellErrors(emptyCells);
 
@@ -432,7 +455,7 @@ function App() {
 
 		const newWords = getNewWords(playedCells, boardCells);
 
-		if (turns.length === 0) {
+		if (isBoardEmpty) {
 			let usesStartingCell = false;
 
 			for (let i = 0, len = newWords.length; i < len; i++) {
@@ -457,7 +480,7 @@ function App() {
 			}
 		}
 
-		if (newWords.length === 1 && turns.length > 0) {
+		if (newWords.length === 1 && !isBoardEmpty) {
 			const word = newWords[0];
 			let usesExistingCell = false;
 
@@ -478,10 +501,8 @@ function App() {
 				return false;
 			}
 		}
-		console.log({ newWords });
 
 		const [passingWords, failingWords] = validateWords(newWords);
-		console.log({ passingWords, failingWords });
 
 		if (failingWords.length > 0) {
 			const invalidCoordinates = getCoordinates(failingWords);
@@ -521,7 +542,7 @@ function App() {
 		setTurns(newTurns);
 
 		return true;
-	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells]);
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells, isBoardEmpty]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -529,8 +550,6 @@ function App() {
 			let preventDefault = false;
 
 			if (code === "Tab") {
-				console.log("tab");
-
 				preventDefault = true;
 
 				const playedCells = getCellsWithNotLockedTiles();
@@ -558,13 +577,11 @@ function App() {
 					}
 				}
 			} else if (code === "Enter") {
-				console.log("enter");
 				preventDefault = true;
 				checkPlayedWord();
 			}
 
 			if (preventDefault) {
-				console.log("prevdef");
 				event.preventDefault();
 			}
 		},
@@ -730,6 +747,50 @@ function App() {
 		setTurns([]);
 	};
 
+	const changeHand = () => {
+		const result = window.confirm("Menetät kädessäsi olevien kirjainten pisteiden määrän verran pisteitä. Haluatko vaihtaa kaikki kädessäsi olevat kirjaimet?");
+
+		if (!result) return;
+
+		let lostPoints = 0;
+		let changedLetters = [];
+
+		for (let i = 0, len = hand.length; i < len; i++) {
+			const tile = hand[i];
+
+			lostPoints += tile.letter.value;
+			changedLetters.push(tile.letter.char);
+		}
+
+		setTurns([...turns, { changingTiles: true, playedWords: changedLetters, filledCells: [], points: -lostPoints }]);
+		fillHand([]);
+	};
+
+	const endGame = () => {
+		const score = turns.reduce((a, b) => a + b.points, 0);
+		let newHighscores = [...highscores].sort((a, b) => b - a);
+
+		if (newHighscores.length < SHOW_HIGHSCORES) {
+			newHighscores.push(score);
+		} else {
+			for (let i = 0, len = newHighscores.length; i < len; i++) {
+				const highscore = newHighscores[i];
+
+				if (score > highscore) {
+					newHighscores.splice(i, 1, score);
+
+					break;
+				}
+			}
+		}
+
+		newHighscores = newHighscores.sort((a, b) => b - a);
+
+		console.log(newHighscores);
+
+		setHighscores(newHighscores);
+	};
+
 	useEffect(() => {
 		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
 	}, []);
@@ -737,6 +798,12 @@ function App() {
 	useEffect(() => {
 		const letterBag = new LetterBag();
 		setLetterBag(letterBag);
+
+		let newHighscores = [5, 2, 3];
+
+		newHighscores = newHighscores.sort((a, b) => b - a);
+
+		console.log(newHighscores);
 	}, [setLetterBag]);
 
 	useEffect(() => {
@@ -744,16 +811,21 @@ function App() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [letterBag]);
 
-	const { startAmount, currentAmount } = letterBag?.getLetterAmounts() || {};
+	useEffect(() => {
+		const { startAmount: start, currentAmount: current, amountOfEachLetter: amounts } = letterBag?.getLetterAmounts() || {};
+		setStartAmount(start);
+		setCurrentAmount(current);
+		setAmountOfEachLetter(amounts);
+	}, [letterBag, hand]);
 
 	return (
 		<div className='app'>
 			<GameArea
 				pointShteet={<PointSheet turns={turns} />}
-				info={<Info startAmount={startAmount} currentAmount={currentAmount} />}
+				info={<Info startAmount={startAmount} currentAmount={currentAmount} amountOfEachLetter={amountOfEachLetter} />}
 				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
 				hand={<Hand hand={hand} />}
-				menu={<Menu newGame={newGame} />}
+				menu={<Menu newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0} canChangeHand={(currentAmount || 0) > 0} />}
 			/>
 		</div>
 	);

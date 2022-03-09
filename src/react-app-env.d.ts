@@ -1,6 +1,5 @@
 /// <reference types="react-scripts" />
 
-import { NumericLiteral } from "typescript";
 import { SpecialCell } from "./enums/SpecialCell";
 
 export interface ITileCoordinates {
@@ -26,6 +25,7 @@ export interface ITurn {
 	playedWords: string[];
 	filledCells: IBoardCell[];
 	points: number;
+	changingTiles?: boolean;
 }
 
 export interface ILetter {

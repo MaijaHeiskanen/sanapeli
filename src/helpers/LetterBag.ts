@@ -1,15 +1,15 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { ILetter } from "../react-app-env";
 
-interface LetterAmounts {
+export interface ILetterAmounts {
 	[key: string]: { amount: number };
 }
 
-interface LetterAmountsAndValues {
+export interface ILetterAmountsAndValues {
 	[key: string]: { amount: number; value: number };
 }
 
-const letterAmounts: LetterAmountsAndValues = {
+const letterAmounts: ILetterAmountsAndValues = {
 	A: { amount: 10, value: 1 },
 	B: { amount: 1, value: 8 },
 	C: { amount: 1, value: 10 },
@@ -42,13 +42,13 @@ export class LetterBag {
 	private amountOfLettersAtBeginning: number;
 	private letterBag: ILetter[];
 	private random: PRNG;
-	private amountOfEachLetter: LetterAmounts;
+	private amountOfEachLetter: ILetterAmounts;
 
 	constructor(seed?: string) {
 		this.random = seedrandom(seed);
 		this.letterBag = this.createBag();
 		this.amountOfLettersAtBeginning = this.letterBag.length;
-		this.amountOfEachLetter = letterAmounts;
+		this.amountOfEachLetter = JSON.parse(JSON.stringify(letterAmounts)); // Deep clone object
 	}
 
 	private getRndInteger(min: number, max: number) {
@@ -77,7 +77,7 @@ export class LetterBag {
 		return shuffledLetterBag;
 	}
 
-	public getLetterAmounts(): { currentAmount: number; startAmount: number; amountOfEachLetter: LetterAmounts } {
+	public getLetterAmounts(): { currentAmount: number; startAmount: number; amountOfEachLetter: ILetterAmounts } {
 		return { currentAmount: this.letterBag.length, startAmount: this.amountOfLettersAtBeginning, amountOfEachLetter: this.amountOfEachLetter };
 	}
 
@@ -90,6 +90,10 @@ export class LetterBag {
 			return null;
 		}
 
-		return this.letterBag.splice(0, 1)[0];
+		const letter = this.letterBag.splice(0, 1)[0];
+
+		this.amountOfEachLetter[letter.char].amount -= 1;
+
+		return letter;
 	}
 }
