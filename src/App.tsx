@@ -445,8 +445,6 @@ function App() {
 		const playedCells = getCellsWithNotLockedTiles();
 		const emptyCells = emptyCellsBetween(playedCells, boardCells);
 
-		console.log(isBoardEmpty);
-
 		if (emptyCells.length > 0) {
 			setCellErrors(emptyCells);
 
@@ -786,8 +784,6 @@ function App() {
 
 		newHighscores = newHighscores.sort((a, b) => b - a);
 
-		console.log(newHighscores);
-
 		setHighscores(newHighscores);
 	};
 
@@ -802,8 +798,6 @@ function App() {
 		let newHighscores = [5, 2, 3];
 
 		newHighscores = newHighscores.sort((a, b) => b - a);
-
-		console.log(newHighscores);
 	}, [setLetterBag]);
 
 	useEffect(() => {

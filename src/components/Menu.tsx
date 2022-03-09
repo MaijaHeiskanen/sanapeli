@@ -9,8 +9,6 @@ type MenuProps = {
 export const Menu = (props: MenuProps) => {
 	const { newGame, changeHand, endGame, canEndGame, canChangeHand } = props;
 
-	console.log({ canEndGame, canChangeHand });
-
 	return (
 		<div className='menu'>
 			<button onClick={newGame}>Uusi peli</button>

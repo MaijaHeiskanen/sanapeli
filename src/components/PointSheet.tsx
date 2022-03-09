@@ -17,7 +17,10 @@ export const PointSheet = (props: PointSheetProps) => {
 		const word = playedWords[0];
 
 		if (word) {
-			totalWords += 1;
+			if (!changingTiles) {
+				totalWords += 1;
+			}
+
 			wordLinks.push(
 				<span className='word'>
 					{changingTiles ? (
@@ -34,7 +37,10 @@ export const PointSheet = (props: PointSheetProps) => {
 
 		for (let i = 1, len = playedWords.length; i < len; i++) {
 			const word = playedWords[i];
-			totalWords += 1;
+
+			if (!changingTiles) {
+				totalWords += 1;
+			}
 
 			if (changingTiles) {
 				wordLinks.push(word, ", ");
