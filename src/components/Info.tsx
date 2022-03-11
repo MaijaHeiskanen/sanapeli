@@ -18,22 +18,25 @@ export const Info = (props: InfoProps) => {
 	}
 
 	return (
-		<div className='info'>
-			<div className='letters'>{`${currentAmount} / ${startAmount} kirjainta pussissa`}</div>
-			<div className='letter-amounts'>
-				<div className='row'>
-					<div className='title'>Kirjain</div>
-					{letters.map((letter) => (
-						<div key={letter}>{letter}</div>
-					))}
-				</div>
-				<div className='row'>
-					<div className='title'>Jäljellä</div>
-					{amounts.map((amount, index) => (
-						<div key={letters[index]}>{amount}</div>
-					))}
+		<>
+			<h2>Kirjainpussi</h2>
+			<div className='info'>
+				<div className='letters'>{`${currentAmount} / ${startAmount} kirjainta pussissa`}</div>
+				<div className='letter-amounts'>
+					<div className='row'>
+						<div className='title'>Kirjain</div>
+						{letters.map((letter) => (
+							<div key={letter}>{letter}</div>
+						))}
+					</div>
+					<div className='row'>
+						<div className='title'>Jäljellä</div>
+						{amounts.map((amount, index) => (
+							<div key={letters[index]}>{amount}</div>
+						))}
+					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 };

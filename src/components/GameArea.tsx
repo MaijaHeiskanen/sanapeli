@@ -5,11 +5,12 @@ type GameAreaProps = {
 	info: React.ReactElement;
 	board: React.ReactElement;
 	hand: React.ReactElement;
+	highscoreBoard: React.ReactElement;
 	menu: React.ReactElement;
 };
 
 export const GameArea = (props: GameAreaProps) => {
-	const { pointShteet, info, board, hand, menu } = props;
+	const { pointShteet, info, board, hand, highscoreBoard, menu } = props;
 
 	return (
 		<div className='gamearea'>
@@ -19,6 +20,7 @@ export const GameArea = (props: GameAreaProps) => {
 				{hand}
 			</div>
 			<div className='side right'>
+				{highscoreBoard}
 				{menu}
 				{info}
 			</div>

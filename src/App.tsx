@@ -4,32 +4,36 @@ import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
 import { GameArea } from "./components/GameArea";
 import { Hand } from "./components/Hand";
+import { HighscoreBoard } from "./components/HighscoreBoard";
 import { Info } from "./components/Info";
 import { Menu } from "./components/Menu";
 import { PointSheet } from "./components/PointSheet";
 import { SpecialCell } from "./enums/SpecialCell";
 import { WriteDirection } from "./enums/WriteDirection";
 import { createBoard } from "./helpers/createBoard";
+import { generateSeed } from "./helpers/generateSeed";
 import { ILetterAmounts, LetterBag } from "./helpers/LetterBag";
 import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import { IBoardCell, ITile, ITileCoordinates, ITurn } from "./react-app-env";
+import { IBoardCell, IHighscore, ITile, ITileCoordinates, ITurn } from "./react-app-env";
 
 export const BOARD_SIZE = 15;
 export const HAND_SIZE = 7;
 export const SHOW_HIGHSCORES = 5;
 
 function App() {
-	const [highscores, setHighscores] = useLocalStorage<number[]>("highscores", []);
+	const [highscores, setHighscores] = useLocalStorage<IHighscore[]>("highscores", []);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
+	const [seed, setSeed] = useLocalStorage<string | undefined>("seed", "random-test-seed");
 	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
-	const [hand, setHand] = useState<ITile[]>([]);
-	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
-	const [turns, setTurns] = useState<ITurn[]>([]);
-	const [startAmount, setStartAmount] = useState<number | undefined>();
-	const [currentAmount, setCurrentAmount] = useState<number | undefined>();
-	const [amountOfEachLetter, setAmountOfEachLetter] = useState<ILetterAmounts | undefined>();
+	const [hand, setHand] = useLocalStorage<ITile[]>("hand", []);
+	const [boardCells, setBoardCells] = useLocalStorage<IBoardCell[][]>("board", [[]]);
+	const [turns, setTurns] = useLocalStorage<ITurn[]>("turns", []);
+	const [startAmount, setStartAmount] = useLocalStorage<number | undefined>("startAmount", undefined);
+	const [currentAmount, setCurrentAmount] = useLocalStorage<number | undefined>("currentAmount", undefined);
+	const [amountOfEachLetter, setAmountOfEachLetter] = useLocalStorage<ILetterAmounts | undefined>("amountOfEachLetter", undefined);
+	const [gameEnded, setGameEnded] = useLocalStorage("hameEnded", false);
 	const isBoardEmpty = useMemo(() => {
 		for (let i = 0, len = boardCells.length; i < len; i++) {
 			const row = boardCells[i];
@@ -142,7 +146,7 @@ function App() {
 		}
 
 		setBoardCells(rows);
-	}, [boardCells]);
+	}, [boardCells, setBoardCells]);
 
 	const setCellErrors = useCallback(
 		(coordinates: ITileCoordinates[]) => {
@@ -159,7 +163,7 @@ function App() {
 
 			setBoardCells(newBoardCells);
 		},
-		[boardCells]
+		[boardCells, setBoardCells]
 	);
 
 	const wordOnSecondaryAxis = useCallback(
@@ -393,7 +397,7 @@ function App() {
 
 			setHand(newHand);
 		},
-		[letterBag]
+		[letterBag, setHand]
 	);
 
 	const removePlayedTilesFromHandAndFill = useCallback(() => {
@@ -420,7 +424,7 @@ function App() {
 
 			setBoardCells(newBoard);
 		},
-		[boardCells]
+		[boardCells, setBoardCells]
 	);
 
 	const getCoordinates = (words: IBoardCell[][]) => {
@@ -540,7 +544,7 @@ function App() {
 		setTurns(newTurns);
 
 		return true;
-	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells, isBoardEmpty]);
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells, isBoardEmpty, setTurns]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -664,7 +668,7 @@ function App() {
 
 			return null;
 		},
-		[alignedWithWriteDirection, hand, resetCellErrors]
+		[alignedWithWriteDirection, hand, resetCellErrors, setHand]
 	);
 
 	const unPlayHandTile = useCallback(
@@ -687,7 +691,7 @@ function App() {
 
 			return false;
 		},
-		[hand, resetCellErrors]
+		[hand, resetCellErrors, setHand]
 	);
 
 	const tileChanged = useCallback(
@@ -738,15 +742,20 @@ function App() {
 	);
 
 	const newGame = () => {
+		console.log("creating new game");
+
 		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
-		const letterBag = new LetterBag();
+		const seed = generateSeed();
+		setSeed(seed);
+		const letterBag = new LetterBag(seed);
 		setLetterBag(letterBag);
 		setHand([]);
 		setTurns([]);
+		setGameEnded(false);
 	};
 
 	const changeHand = () => {
-		const result = window.confirm("Menetät kädessäsi olevien kirjainten pisteiden määrän verran pisteitä. Haluatko vaihtaa kaikki kädessäsi olevat kirjaimet?");
+		const result = true; //window.confirm("Menetät kädessäsi olevien kirjainten pisteiden määrän verran pisteitä. Haluatko vaihtaa kaikki kädessäsi olevat kirjaimet?");
 
 		if (!result) return;
 
@@ -765,40 +774,63 @@ function App() {
 	};
 
 	const endGame = () => {
-		const score = turns.reduce((a, b) => a + b.points, 0);
-		let newHighscores = [...highscores].sort((a, b) => b - a);
+		if (currentAmount === undefined || currentAmount > 0) return;
+
+		let lostPoints = 0;
+		let changedLetters = [];
+
+		for (let i = 0, len = hand.length; i < len; i++) {
+			const tile = hand[i];
+
+			lostPoints += tile.letter.value;
+			changedLetters.push(tile.letter.char);
+		}
+
+		setHand([]);
+		const finalTurns = [...turns, { changingTiles: true, playedWords: changedLetters, filledCells: [], points: -lostPoints }];
+		setTurns(finalTurns);
+
+		const score = finalTurns.reduce((a, b) => a + b.points, 0);
+		const amountOfPlayedWords = finalTurns.reduce((a, b) => a + (b.changingTiles ? 0 : b.playedWords.length), 0);
+		const amountOfSkippedLetters = finalTurns.reduce((a, b) => a + (b.changingTiles ? b.playedWords.length : 0), 0);
+		const newScore = { points: score, amountOfPlayedWords, amountOfSkippedLetters, date: new Date() };
+		let newHighscores = [...highscores].sort((a, b) => b.points - a.points);
 
 		if (newHighscores.length < SHOW_HIGHSCORES) {
-			newHighscores.push(score);
+			newHighscores.push(newScore);
 		} else {
 			for (let i = 0, len = newHighscores.length; i < len; i++) {
 				const highscore = newHighscores[i];
 
-				if (score > highscore) {
-					newHighscores.splice(i, 1, score);
+				if (newScore.points > highscore.points) {
+					newHighscores.splice(i, 1, newScore);
 
 					break;
 				}
 			}
 		}
 
-		newHighscores = newHighscores.sort((a, b) => b - a);
+		newHighscores = newHighscores.sort((a, b) => b.points - a.points);
+
+		console.log({ newHighscores });
 
 		setHighscores(newHighscores);
+		setGameEnded(true);
 	};
 
 	useEffect(() => {
-		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
-	}, []);
+		let letterBag;
 
-	useEffect(() => {
-		const letterBag = new LetterBag();
+		if (false && seed && currentAmount != null && startAmount !== null) {
+			letterBag = new LetterBag(seed, currentAmount, startAmount);
+		} else {
+			newGame();
+
+			return;
+		}
+
 		setLetterBag(letterBag);
-
-		let newHighscores = [5, 2, 3];
-
-		newHighscores = newHighscores.sort((a, b) => b - a);
-	}, [setLetterBag]);
+	}, []);
 
 	useEffect(() => {
 		fillHand(hand);
@@ -819,7 +851,8 @@ function App() {
 				info={<Info startAmount={startAmount} currentAmount={currentAmount} amountOfEachLetter={amountOfEachLetter} />}
 				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
 				hand={<Hand hand={hand} />}
-				menu={<Menu newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0} canChangeHand={(currentAmount || 0) > 0} />}
+				highscoreBoard={<HighscoreBoard highscores={highscores} />}
+				menu={<Menu newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0 && !gameEnded} canChangeHand={(currentAmount || 0) > 0} />}
 			/>
 		</div>
 	);

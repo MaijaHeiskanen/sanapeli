@@ -32,3 +32,10 @@ export interface ILetter {
 	char: string;
 	value: number;
 }
+
+export interface IHighscore {
+	points: number;
+	amountOfPlayedWords: number;
+	date: Date;
+	amountOfSkippedLetters: number;
+}

@@ -44,11 +44,15 @@ export class LetterBag {
 	private random: PRNG;
 	private amountOfEachLetter: ILetterAmounts;
 
-	constructor(seed?: string) {
+	constructor(seed?: string, currentAmount?: number, startAmount?: number) {
 		this.random = seedrandom(seed);
 		this.letterBag = this.createBag();
 		this.amountOfLettersAtBeginning = this.letterBag.length;
 		this.amountOfEachLetter = JSON.parse(JSON.stringify(letterAmounts)); // Deep clone object
+
+		if (startAmount && currentAmount) {
+			this.letterBag.splice(0, startAmount - currentAmount);
+		}
 	}
 
 	private getRndInteger(min: number, max: number) {

@@ -10,14 +10,17 @@ export const Menu = (props: MenuProps) => {
 	const { newGame, changeHand, endGame, canEndGame, canChangeHand } = props;
 
 	return (
-		<div className='menu'>
-			<button onClick={newGame}>Uusi peli</button>
-			<button onClick={changeHand} disabled={!canChangeHand}>
-				Vaihda käsi
-			</button>
-			{/* <button onClick={endGame} disabled={!canEndGame} title={"Pelin voi päättää, kun kaikki kirjaimet on käytetty"}>
-				Päätä peli
-			</button> */}
-		</div>
+		<>
+			<h2>Valikko</h2>
+			<div className='menu'>
+				<button onClick={newGame}>Uusi peli</button>
+				<button onClick={changeHand} disabled={!canChangeHand}>
+					Vaihda käsi
+				</button>
+				<button onClick={endGame} disabled={!canEndGame} title={"Pelin voi päättää, kun kaikki kirjaimet on käytetty"}>
+					Päätä peli
+				</button>
+			</div>
+		</>
 	);
 };

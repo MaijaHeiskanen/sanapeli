@@ -5,10 +5,31 @@ interface PointSheetProps {
 }
 
 export const PointSheet = (props: PointSheetProps) => {
+	const { turns } = props;
 	let totalPoints = 0;
 	let totalWords = 0;
 
-	const rows = props.turns.map((turn, index) => {
+	const turnIndexes = [];
+	const scores = [];
+	const words = [];
+
+	turnIndexes.push(
+		<div key={"header"} className='header'>
+			Vuoro
+		</div>
+	);
+	scores.push(
+		<div key={"header"} className='header'>
+			Pisteet
+		</div>
+	);
+	words.push(
+		<div key={"header"} className='header'>
+			Sanat
+		</div>
+	);
+
+	turns.forEach((turn, index) => {
 		const { points, playedWords, changingTiles } = turn;
 
 		totalPoints += points;
@@ -56,30 +77,43 @@ export const PointSheet = (props: PointSheetProps) => {
 
 		wordLinks.splice(wordLinks.length - 1, 1);
 
-		return (
-			<div className='row' key={index + 1}>
-				<div className='column index'>{index + 1}</div>
-				<div className='column points'>{points}</div>
-				<div className='column words'>{wordLinks}</div>
+		turnIndexes.push(
+			<div key={index} className='row'>
+				{index + 1}
+			</div>
+		);
+		scores.push(
+			<div key={index} className='row'>
+				{points}
+			</div>
+		);
+		words.push(
+			<div key={index} className='row'>
+				{wordLinks}
 			</div>
 		);
 	});
 
-	return (
-		<div className='pointsheet'>
-			<div className='row header' key={"header"}>
-				<div className='column index'>Vuoro</div>
-				<div className='column points'>Pisteet</div>
-				<div className='column words'>Sanat</div>
-			</div>
-
-			{rows}
-
-			<div className='row footer' key={"footer"}>
-				<div className='column index'>Yht.</div>
-				<div className='column points'>{totalPoints}</div>
-				<div className='column words'>{`${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`}</div>
-			</div>
+	turnIndexes.push(
+		<div key={"footer"} className='footer'>
+			Yht.
 		</div>
+	);
+	scores.push(
+		<div key={"footer"} className='footer'>
+			{totalPoints}
+		</div>
+	);
+	words.push(<div key={"footer"} className='footer'>{`${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`}</div>);
+
+	return (
+		<>
+			<h2>Pisteet</h2>
+			<div className='pointsheet'>
+				<div className='column'>{turnIndexes}</div>
+				<div className='column'>{scores}</div>
+				<div className='column'>{words}</div>
+			</div>
+		</>
 	);
 };
