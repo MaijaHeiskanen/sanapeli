@@ -14,14 +14,16 @@ export const GameArea = (props: GameAreaProps) => {
 
 	return (
 		<div className='gamearea'>
-			<div className='side'>{pointShteet}</div>
+			<div className='side'>
+				{menu}
+				{pointShteet}
+			</div>
 			<div className='center'>
 				{board}
 				{hand}
 			</div>
 			<div className='side right'>
 				{highscoreBoard}
-				{menu}
 				{info}
 			</div>
 		</div>

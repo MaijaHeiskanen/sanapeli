@@ -859,7 +859,7 @@ function App() {
 	useEffect(() => {
 		let letterBag;
 
-		if (seed && currentAmount != null && startAmount !== null) {
+		if (seed && currentAmount !== undefined && startAmount !== undefined) {
 			letterBag = new LetterBag(seed, currentAmount, startAmount);
 
 			setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
