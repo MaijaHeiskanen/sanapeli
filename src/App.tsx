@@ -28,7 +28,7 @@ function App() {
 	const [playedCells, setPlayedCells] = useLocalStorage<IBoardCell[]>("playedCells", []);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
 	const [seed, setSeed] = useLocalStorage<string | undefined>("seed", "random-test-seed");
-	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
+	const [direction, setDirection] = useLocalStorage<WriteDirection>("direction", WriteDirection.Right);
 	const [hand, setHand] = useLocalStorage<ITile[]>("hand", []);
 	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 	const [turns, setTurns] = useLocalStorage<ITurn[]>("turns", []);
@@ -538,6 +538,12 @@ function App() {
 		const newTurns = [...turns];
 		newTurns.push({ playedWords: words, points });
 
+		for (const { coordinates, tile } of playedCells) {
+			if (tile) {
+				addPlayedCell(coordinates, tile);
+			}
+		}
+
 		setTurns(newTurns);
 
 		return true;
@@ -744,7 +750,7 @@ function App() {
 					removePlayedCell(coordinates);
 				} else if ((playedTile = playHandTile(value, coordinates)) !== null) {
 					cell.tile = playedTile;
-					addPlayedCell(coordinates, playedTile);
+					addPlayedCell(coordinates, cell.tile);
 				}
 
 				setBoardCells(cells);

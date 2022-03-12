@@ -8,7 +8,7 @@ export const setPlayedCellsToBoard = (board: IBoardCell[][], playedCells: IBoard
 		const boardCell = board[row][column];
 
 		if (boardCell && tile) {
-			boardCell.tile = { ...tile, locked: true, played: true };
+			boardCell.tile = { ...tile };
 		}
 	});
 
