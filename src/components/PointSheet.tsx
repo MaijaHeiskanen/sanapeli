@@ -43,11 +43,11 @@ export const PointSheet = (props: PointSheetProps) => {
 			}
 
 			wordLinks.push(
-				<span className='word'>
+				<span className='word' key={word}>
 					{changingTiles ? (
 						word
 					) : (
-						<a key={word} className='link' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}>
+						<a className='link' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}>
 							{word}
 						</a>
 					)}
@@ -110,9 +110,15 @@ export const PointSheet = (props: PointSheetProps) => {
 		<>
 			<h2>Pisteet</h2>
 			<div className='pointsheet'>
-				<div className='column'>{turnIndexes}</div>
-				<div className='column'>{scores}</div>
-				<div className='column'>{words}</div>
+				<div className='column' key={"turnIndexes"}>
+					{turnIndexes}
+				</div>
+				<div className='column' key={"scores"}>
+					{scores}
+				</div>
+				<div className='column' key={"words"}>
+					{words}
+				</div>
 			</div>
 		</>
 	);

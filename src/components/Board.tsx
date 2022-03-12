@@ -12,8 +12,6 @@ export const Board = (props: {
 }) => {
 	const { direction, boardCells, tileChanged, moveFocus } = props;
 
-	console.log({ boardCells });
-
 	const boardRows: JSX.Element[] = useMemo(() => {
 		const rows: JSX.Element[][] = [];
 

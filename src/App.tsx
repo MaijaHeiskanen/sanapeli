@@ -137,9 +137,7 @@ function App() {
 			const column: IBoardCell[] = [];
 
 			for (let ii = 0, len2 = boardCells[0].length; ii < len2; ii++) {
-				const cell = boardCells[i][ii];
-
-				cell.invalidTile = false;
+				const cell = { ...boardCells[i][ii], invalidTile: false };
 
 				column.push(cell);
 			}
@@ -154,11 +152,8 @@ function App() {
 		(coordinates: ITileCoordinates[]) => {
 			const newBoardCells = [...boardCells];
 
-			for (let i = 0, len = coordinates.length; i < len; i++) {
-				const { column, row } = coordinates[i];
-				const cell = { ...newBoardCells[row][column] };
-
-				cell.invalidTile = true;
+			for (const { column, row } of coordinates) {
+				const cell = { ...newBoardCells[row][column], invalidTile: true };
 
 				newBoardCells[row][column] = cell;
 			}
@@ -761,17 +756,17 @@ function App() {
 				if (!oldValue && playedTile) {
 					const changeDirection = shouldChangeDirection(coordinates);
 					const moveDirection = { row: 0, column: 0 };
+					let localDirection = direction;
 
-					const directionIsRight = changeDirection !== (direction === WriteDirection.Right);
+					if (changeDirection) {
+						localDirection = localDirection === WriteDirection.Right ? WriteDirection.Down : WriteDirection.Right;
+						setDirection(localDirection);
+					}
 
-					if (directionIsRight) {
+					if (localDirection === WriteDirection.Right) {
 						moveDirection.column = 1;
 					} else {
 						moveDirection.row = 1;
-					}
-
-					if (changeDirection) {
-						setDirection(directionIsRight ? WriteDirection.Right : WriteDirection.Down);
 					}
 
 					moveFocus(coordinates, moveDirection);
@@ -782,8 +777,6 @@ function App() {
 	);
 
 	const newGame = () => {
-		console.log("creating new game");
-
 		setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
 		const seed = generateSeed();
 		setSeed(seed);
@@ -853,8 +846,6 @@ function App() {
 
 		newHighscores = newHighscores.sort((a, b) => b.points - a.points);
 
-		console.log({ newHighscores });
-
 		setHighscores(newHighscores);
 		setGameEnded(true);
 	};
@@ -863,8 +854,6 @@ function App() {
 		let letterBag;
 
 		if (seed && currentAmount != null && startAmount !== null) {
-			console.log({ turns });
-
 			letterBag = new LetterBag(seed, currentAmount, startAmount);
 
 			setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
