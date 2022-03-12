@@ -440,6 +440,17 @@ function App() {
 		return coordinates;
 	};
 
+	const addPlayedCell = useCallback(
+		(coordinates: ITileCoordinates, playedTile: ITile) => {
+			const newPlayedCells = [...playedCells];
+
+			newPlayedCells.push({ coordinates, tile: playedTile });
+
+			setPlayedCells(newPlayedCells);
+		},
+		[playedCells, setPlayedCells]
+	);
+
 	const checkPlayedWord = useCallback(() => {
 		resetCellErrors();
 
@@ -547,7 +558,7 @@ function App() {
 		setTurns(newTurns);
 
 		return true;
-	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells, isBoardEmpty, setTurns]);
+	}, [boardCells, getCellsWithNotLockedTiles, emptyCellsBetween, resetCellErrors, setCellErrors, turns, getNewWords, calculatePoints, validateWords, removePlayedTilesFromHandAndFill, lockCells, isBoardEmpty, setTurns, addPlayedCell]);
 
 	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
@@ -590,7 +601,7 @@ function App() {
 				event.preventDefault();
 			}
 		},
-		[direction, getCellsWithNotLockedTiles, moveFocus, checkPlayedWord]
+		[direction, getCellsWithNotLockedTiles, moveFocus, checkPlayedWord, setDirection]
 	);
 
 	useKeyDownListener(keyDownCallback);
@@ -722,17 +733,6 @@ function App() {
 		[playedCells, setPlayedCells]
 	);
 
-	const addPlayedCell = useCallback(
-		(coordinates: ITileCoordinates, playedTile: ITile) => {
-			const newPlayedCells = [...playedCells];
-
-			newPlayedCells.push({ coordinates, tile: playedTile });
-
-			setPlayedCells(newPlayedCells);
-		},
-		[playedCells, setPlayedCells]
-	);
-
 	const tileChanged = useCallback(
 		(coordinates: ITileCoordinates, value: string | undefined) => {
 			const { column, row } = coordinates;
@@ -779,7 +779,7 @@ function App() {
 				}
 			}
 		},
-		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection, addPlayedCell, removePlayedCell]
+		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection, addPlayedCell, removePlayedCell, setDirection]
 	);
 
 	const newGame = () => {
