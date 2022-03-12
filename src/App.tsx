@@ -13,6 +13,7 @@ import { WriteDirection } from "./enums/WriteDirection";
 import { createBoard } from "./helpers/createBoard";
 import { generateSeed } from "./helpers/generateSeed";
 import { ILetterAmounts, LetterBag } from "./helpers/LetterBag";
+import { setPlayedCellsToBoard } from "./helpers/setPlayedCells";
 import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
 import { useLocalStorage } from "./hooks/useLocalStorage";
@@ -24,11 +25,12 @@ export const SHOW_HIGHSCORES = 5;
 
 function App() {
 	const [highscores, setHighscores] = useLocalStorage<IHighscore[]>("highscores", []);
+	const [playedCells, setPlayedCells] = useLocalStorage<IBoardCell[]>("playedCells", []);
 	const [letterBag, setLetterBag] = useState<LetterBag>();
 	const [seed, setSeed] = useLocalStorage<string | undefined>("seed", "random-test-seed");
 	const [direction, setDirection] = useState<WriteDirection>(WriteDirection.Right);
 	const [hand, setHand] = useLocalStorage<ITile[]>("hand", []);
-	const [boardCells, setBoardCells] = useLocalStorage<IBoardCell[][]>("board", [[]]);
+	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 	const [turns, setTurns] = useLocalStorage<ITurn[]>("turns", []);
 	const [startAmount, setStartAmount] = useLocalStorage<number | undefined>("startAmount", undefined);
 	const [currentAmount, setCurrentAmount] = useLocalStorage<number | undefined>("currentAmount", undefined);
@@ -539,7 +541,7 @@ function App() {
 		lockCells(playedCells);
 
 		const newTurns = [...turns];
-		newTurns.push({ playedWords: words, filledCells: playedCells, points });
+		newTurns.push({ playedWords: words, points });
 
 		setTurns(newTurns);
 
@@ -694,6 +696,42 @@ function App() {
 		[hand, resetCellErrors, setHand]
 	);
 
+	const removePlayedCell = useCallback(
+		(coordinates: ITileCoordinates) => {
+			const { row, column } = coordinates;
+
+			for (let i = 0, len = playedCells.length; i < len; i++) {
+				const cell = playedCells[i];
+
+				if (!cell) continue;
+
+				const playedCellCoordinates = cell.coordinates;
+
+				if (row === playedCellCoordinates.row && column === playedCellCoordinates.column) {
+					const newPlayedCells = [...playedCells];
+
+					newPlayedCells.splice(i, 1);
+
+					setPlayedCells(newPlayedCells);
+
+					return;
+				}
+			}
+		},
+		[playedCells, setPlayedCells]
+	);
+
+	const addPlayedCell = useCallback(
+		(coordinates: ITileCoordinates, playedTile: ITile) => {
+			const newPlayedCells = [...playedCells];
+
+			newPlayedCells.push({ coordinates, tile: playedTile });
+
+			setPlayedCells(newPlayedCells);
+		},
+		[playedCells, setPlayedCells]
+	);
+
 	const tileChanged = useCallback(
 		(coordinates: ITileCoordinates, value: string | undefined) => {
 			const { column, row } = coordinates;
@@ -708,8 +746,10 @@ function App() {
 
 				if (!value) {
 					cell.tile = undefined;
+					removePlayedCell(coordinates);
 				} else if ((playedTile = playHandTile(value, coordinates)) !== null) {
 					cell.tile = playedTile;
+					addPlayedCell(coordinates, playedTile);
 				}
 
 				setBoardCells(cells);
@@ -722,7 +762,7 @@ function App() {
 					const changeDirection = shouldChangeDirection(coordinates);
 					const moveDirection = { row: 0, column: 0 };
 
-					const directionIsRight = changeDirection ? !(direction === WriteDirection.Right) : direction === WriteDirection.Right;
+					const directionIsRight = changeDirection !== (direction === WriteDirection.Right);
 
 					if (directionIsRight) {
 						moveDirection.column = 1;
@@ -738,7 +778,7 @@ function App() {
 				}
 			}
 		},
-		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection]
+		[boardCells, setBoardCells, direction, playHandTile, unPlayHandTile, moveFocus, shouldChangeDirection, addPlayedCell, removePlayedCell]
 	);
 
 	const newGame = () => {
@@ -751,6 +791,7 @@ function App() {
 		setLetterBag(letterBag);
 		setHand([]);
 		setTurns([]);
+		setPlayedCells([]);
 		setGameEnded(false);
 	};
 
@@ -769,7 +810,7 @@ function App() {
 			changedLetters.push(tile.letter.char);
 		}
 
-		setTurns([...turns, { changingTiles: true, playedWords: changedLetters, filledCells: [], points: -lostPoints }]);
+		setTurns([...turns, { changingTiles: true, playedWords: changedLetters, points: -lostPoints }]);
 		fillHand([]);
 	};
 
@@ -787,13 +828,13 @@ function App() {
 		}
 
 		setHand([]);
-		const finalTurns = [...turns, { changingTiles: true, playedWords: changedLetters, filledCells: [], points: -lostPoints }];
+		const finalTurns = [...turns, { changingTiles: true, playedWords: changedLetters, points: -lostPoints }];
 		setTurns(finalTurns);
 
 		const score = finalTurns.reduce((a, b) => a + b.points, 0);
 		const amountOfPlayedWords = finalTurns.reduce((a, b) => a + (b.changingTiles ? 0 : b.playedWords.length), 0);
 		const amountOfSkippedLetters = finalTurns.reduce((a, b) => a + (b.changingTiles ? b.playedWords.length : 0), 0);
-		const newScore = { points: score, amountOfPlayedWords, amountOfSkippedLetters, date: new Date() };
+		const newScore = { points: score, amountOfPlayedWords, amountOfSkippedLetters, date: new Date(), seed };
 		let newHighscores = [...highscores].sort((a, b) => b.points - a.points);
 
 		if (newHighscores.length < SHOW_HIGHSCORES) {
@@ -821,8 +862,12 @@ function App() {
 	useEffect(() => {
 		let letterBag;
 
-		if (false && seed && currentAmount != null && startAmount !== null) {
+		if (seed && currentAmount != null && startAmount !== null) {
+			console.log({ turns });
+
 			letterBag = new LetterBag(seed, currentAmount, startAmount);
+
+			setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
 		} else {
 			newGame();
 

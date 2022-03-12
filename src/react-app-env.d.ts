@@ -23,7 +23,6 @@ export interface ITile {
 
 export interface ITurn {
 	playedWords: string[];
-	filledCells: IBoardCell[];
 	points: number;
 	changingTiles?: boolean;
 }
@@ -38,4 +37,5 @@ export interface IHighscore {
 	amountOfPlayedWords: number;
 	date: Date;
 	amountOfSkippedLetters: number;
+	seed?: string;
 }
