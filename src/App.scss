@@ -9,11 +9,11 @@ body {
 	height: 100%;
 	flex-grow: 1;
 	background-color: white;
-	padding: 2rem;
 	display: flex;
 	flex-direction: column;
 	background-color: white;
 	overflow-x: auto;
+	padding: 2rem;
 }
 
 #root {
@@ -148,6 +148,33 @@ body {
 	}
 }
 
+.popover {
+	position: absolute;
+	background-color: white;
+	z-index: 100;
+	box-shadow: rgba(0, 0, 0, 0.3) 0 2px 10px;
+	font-size: 20px;
+	padding: 2em;
+	margin: 2em;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	height: fit-content;
+
+	button {
+		margin-top: 1em;
+		float: right;
+	}
+}
+
+.instructions-section {
+	margin-bottom: 3em;
+	.instructions {
+		line-height: 1.5em;
+	}
+}
+
 .pointsheet {
 	max-height: 40em;
 	overflow-y: auto;
@@ -166,37 +193,37 @@ body {
 	font-style: italic;
 }
 
+button {
+	all: unset;
+	cursor: pointer;
+	display: inline-block;
+	padding: 0.7em 1.4em;
+	margin: 0 0.3em 0.3em 0;
+	border-radius: 0.15em;
+	box-sizing: border-box;
+	text-decoration: none;
+	font-family: "Roboto", sans-serif;
+	text-transform: uppercase;
+	font-weight: 400;
+	color: #ffffff;
+	background-color: #3369ff;
+	box-shadow: inset 0 -0.6em 0 -0.35em rgba(0, 0, 0, 0.17);
+	text-align: center;
+	position: relative;
+
+	&:active {
+		top: 0.1em;
+		box-shadow: none;
+	}
+
+	&:disabled {
+		background-color: lighten(#3369ff, 20%);
+		cursor: initial;
+	}
+}
+
 .menu {
 	padding-bottom: 1em;
-
-	button {
-		all: unset;
-		cursor: pointer;
-		display: inline-block;
-		padding: 0.7em 1.4em;
-		margin: 0 0.3em 0.3em 0;
-		border-radius: 0.15em;
-		box-sizing: border-box;
-		text-decoration: none;
-		font-family: "Roboto", sans-serif;
-		text-transform: uppercase;
-		font-weight: 400;
-		color: #ffffff;
-		background-color: #3369ff;
-		box-shadow: inset 0 -0.6em 0 -0.35em rgba(0, 0, 0, 0.17);
-		text-align: center;
-		position: relative;
-
-		&:active {
-			top: 0.1em;
-			box-shadow: none;
-		}
-
-		&:disabled {
-			background-color: lighten(#3369ff, 20%);
-			cursor: initial;
-		}
-	}
 }
 
 .info {

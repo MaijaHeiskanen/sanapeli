@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import classNames from "classnames";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.scss";
 import { Checker } from "./checker/Checker";
 import { Board } from "./components/Board";
@@ -17,6 +18,7 @@ import { setPlayedCellsToBoard } from "./helpers/setPlayedCells";
 import { setSpecialCells } from "./helpers/setSpecialTiles";
 import { useKeyDownListener } from "./hooks/useKeyDownListener";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { Instructions } from "./Instructions";
 import { IBoardCell, IHighscore, ITile, ITileCoordinates, ITurn } from "./react-app-env";
 
 export const BOARD_SIZE = 15;
@@ -36,6 +38,9 @@ function App() {
 	const [currentAmount, setCurrentAmount] = useLocalStorage<number | undefined>("currentAmount", undefined);
 	const [amountOfEachLetter, setAmountOfEachLetter] = useLocalStorage<ILetterAmounts | undefined>("amountOfEachLetter", undefined);
 	const [gameEnded, setGameEnded] = useLocalStorage("hameEnded", false);
+	const [showInstructions, setShowInstruction] = useState(false);
+	const instructionsRef = useRef<HTMLDivElement>(null);
+	const appRef = useRef<HTMLDivElement>(null);
 	const isBoardEmpty = useMemo(() => {
 		for (let i = 0, len = boardCells.length; i < len; i++) {
 			const row = boardCells[i];
@@ -856,6 +861,16 @@ function App() {
 		setGameEnded(true);
 	};
 
+	const toggleInstructionsPopover = () => {
+		setShowInstruction(!showInstructions);
+
+		if (showInstructions) {
+			appRef?.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+		} else {
+			instructionsRef?.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+		}
+	};
+
 	useEffect(() => {
 		let letterBag;
 
@@ -885,14 +900,18 @@ function App() {
 	}, [letterBag, hand]);
 
 	return (
-		<div className='app'>
+		<div className='app' ref={appRef}>
+			<div className={classNames("instructions-section")} ref={instructionsRef}>
+				<Instructions show={showInstructions} />
+				{showInstructions && <button onClick={toggleInstructionsPopover}>Piilota ohjeet</button>}
+			</div>
 			<GameArea
 				pointShteet={<PointSheet turns={turns} />}
 				info={<Info startAmount={startAmount} currentAmount={currentAmount} amountOfEachLetter={amountOfEachLetter} />}
 				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
 				hand={<Hand hand={hand} />}
 				highscoreBoard={<HighscoreBoard highscores={highscores} />}
-				menu={<Menu newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0 && !gameEnded} canChangeHand={(currentAmount || 0) > 0} />}
+				menu={<Menu toggleInstructionsPopover={toggleInstructionsPopover} newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0 && !gameEnded} canChangeHand={(currentAmount || 0) > 0} />}
 			/>
 		</div>
 	);
