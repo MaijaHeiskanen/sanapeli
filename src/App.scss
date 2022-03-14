@@ -58,7 +58,7 @@ body {
 	}
 
 	.center {
-		width: 60rem;
+		width: 56rem;
 
 		display: flex;
 		flex-direction: column;
@@ -119,76 +119,47 @@ body {
 	}
 }
 
-.pointsheet {
-	max-height: 60em;
-	overflow-y: auto;
-	padding-bottom: 1em;
-	display: flex;
+.table {
+	th {
+		font-weight: 500;
+	}
 
-	.column {
-		display: flex;
-		flex-direction: column;
+	td,
+	th {
+		padding: 0.3em 0.6em;
+		text-align: left;
+	}
 
-		.row {
-			padding: 0.3em 0.4em;
-		}
-
-		.header {
+	.header {
+		th {
 			border-bottom: black 1px solid;
-			display: flex;
-			align-items: flex-end;
-			height: 2.4em;
-			padding: 0.3em 0.4em;
-			border-bottom: 1px black solid;
-		}
-
-		.footer {
-			border-top: black 1px solid;
-			display: flex;
-			align-items: flex-start;
-			height: 2.4em;
-			padding: 0.3em 0.4em;
 		}
 	}
 
-	.column + .column {
+	.footer {
+		th {
+			border-top: black 1px solid;
+		}
+	}
+
+	td + td,
+	th + th {
 		border-left: 1px solid black;
 	}
 }
 
-.highscoreboard {
-	display: flex;
-	flex-direction: row;
+.pointsheet {
+	max-height: 40em;
+	overflow-y: auto;
 	padding-bottom: 1em;
 
-	.column {
-		display: flex;
-		flex-direction: column;
-
-		.header {
-			border-bottom: black 1px solid;
-		}
-
-		.footer {
-			border-top: black 1px solid;
-		}
-
-		.row {
-			padding: 0.3em 0.4em;
-		}
-
-		.title {
-			display: flex;
-			align-items: flex-end;
-			height: 2.4em;
-			padding: 0.3em 0.4em;
-			border-bottom: 1px black solid;
-		}
+	td {
+		max-width: 10em;
 	}
+}
 
-	.column + .column {
-		border-left: 1px solid black;
-	}
+.highscoreboard {
+	padding-bottom: 1em;
 }
 
 .no-scores {
@@ -238,29 +209,22 @@ body {
 	}
 
 	.letter-amounts {
-		display: flex;
-		flex-direction: row;
-		flex-grow: 0;
-		border: 1px solid lightblue;
-
-		.row {
-			display: flex;
-			flex-direction: column;
-
-			> div {
-				padding: 0.1em 0.6em;
-				border-bottom: 1px solid lightblue;
-			}
-
-			.title {
-				border-bottom: 1px solid black;
-			}
-		}
-
-		.row + .row {
-			border-left: 1px solid black;
+		td {
+			padding-top: 0.1em;
+			padding-bottom: 0.1em;
 		}
 	}
+
+	tr:not(:last-child) {
+		td {
+			border-bottom: 1px solid lightblue;
+		}
+	}
+}
+
+input,
+table {
+	all: unset;
 }
 
 .cell,
@@ -276,10 +240,6 @@ body {
 	position: relative;
 	border-radius: 2px;
 	flex-shrink: 0;
-
-	input {
-		all: unset;
-	}
 
 	&.transparent {
 		opacity: 0.6;

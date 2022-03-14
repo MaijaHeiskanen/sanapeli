@@ -1,4 +1,6 @@
 import { ILetterAmounts } from "../helpers/LetterBag";
+import { TableHeaderRow } from "./TableHeaderRow";
+import { TableRow } from "./TableRow";
 
 type InfoProps = {
 	startAmount: number | undefined;
@@ -10,9 +12,16 @@ export const Info = (props: InfoProps) => {
 	const { startAmount, currentAmount, amountOfEachLetter } = props;
 	const letters = Object.keys(amountOfEachLetter || {});
 	const amounts = [];
+	const rows = [];
+
+	rows.push(<TableHeaderRow className='header' key={"header"} cells={["Kirjain", "Jäljellä"]} />);
 
 	if (amountOfEachLetter) {
 		for (let i = 0, len = letters.length; i < len; i++) {
+			const letter = letters[i];
+			const amount = amountOfEachLetter[letter].amount;
+
+			rows.push(<TableRow key={letter} cells={[letter, amount]} />);
 			amounts.push(amountOfEachLetter[letters[i]].amount);
 		}
 	}
@@ -22,20 +31,10 @@ export const Info = (props: InfoProps) => {
 			<h2>Kirjainpussi</h2>
 			<div className='info'>
 				<div className='letters'>{`${currentAmount} / ${startAmount} kirjainta pussissa`}</div>
-				<div className='letter-amounts'>
-					<div className='row'>
-						<div className='title'>Kirjain</div>
-						{letters.map((letter) => (
-							<div key={letter}>{letter}</div>
-						))}
-					</div>
-					<div className='row'>
-						<div className='title'>Jäljellä</div>
-						{amounts.map((amount, index) => (
-							<div key={letters[index]}>{amount}</div>
-						))}
-					</div>
-				</div>
+
+				<table className='table letter-amounts'>
+					<tbody>{rows}</tbody>
+				</table>
 			</div>
 		</>
 	);

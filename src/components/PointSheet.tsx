@@ -1,4 +1,6 @@
 import { ITurn } from "../react-app-env";
+import { TableHeaderRow } from "./TableHeaderRow";
+import { TableRow } from "./TableRow";
 
 interface PointSheetProps {
 	turns: ITurn[];
@@ -8,26 +10,9 @@ export const PointSheet = (props: PointSheetProps) => {
 	const { turns } = props;
 	let totalPoints = 0;
 	let totalWords = 0;
+	const rows = [];
 
-	const turnIndexes = [];
-	const scores = [];
-	const words = [];
-
-	turnIndexes.push(
-		<div key={"header"} className='header'>
-			Vuoro
-		</div>
-	);
-	scores.push(
-		<div key={"header"} className='header'>
-			Pisteet
-		</div>
-	);
-	words.push(
-		<div key={"header"} className='header'>
-			Sanat
-		</div>
-	);
+	rows.push(<TableHeaderRow key={"header"} cells={["Vuoro", "Pisteet", "Sanat"]} className='header' />);
 
 	turns.forEach((turn, index) => {
 		const { points, playedWords, changingTiles } = turn;
@@ -77,49 +62,17 @@ export const PointSheet = (props: PointSheetProps) => {
 
 		wordLinks.splice(wordLinks.length - 1, 1);
 
-		turnIndexes.push(
-			<div key={index} className='row'>
-				{index + 1}
-			</div>
-		);
-		scores.push(
-			<div key={index} className='row'>
-				{points}
-			</div>
-		);
-		words.push(
-			<div key={index} className='row'>
-				{wordLinks}
-			</div>
-		);
+		rows.push(<TableRow key={index} cells={[index, points, wordLinks]} />);
 	});
 
-	turnIndexes.push(
-		<div key={"footer"} className='footer'>
-			Yht.
-		</div>
-	);
-	scores.push(
-		<div key={"footer"} className='footer'>
-			{totalPoints}
-		</div>
-	);
-	words.push(<div key={"footer"} className='footer'>{`${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`}</div>);
+	rows.push(<TableHeaderRow key={"footer"} cells={["Yht.", totalPoints, `${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`]} className='footer' />);
 
 	return (
 		<>
 			<h2>Pisteet</h2>
-			<div className='pointsheet'>
-				<div className='column' key={"turnIndexes"}>
-					{turnIndexes}
-				</div>
-				<div className='column' key={"scores"}>
-					{scores}
-				</div>
-				<div className='column' key={"words"}>
-					{words}
-				</div>
-			</div>
+			<table className='table pointsheet'>
+				<tbody>{rows}</tbody>
+			</table>
 		</>
 	);
 };
