@@ -51,7 +51,9 @@ export class LetterBag {
 		this.amountOfEachLetter = JSON.parse(JSON.stringify(letterAmounts)); // Deep clone object
 
 		if (startAmount !== undefined && currentAmount !== undefined) {
-			this.letterBag.splice(0, startAmount - currentAmount);
+			for (let i = 0, len = startAmount - currentAmount; i < len; i++) {
+				this.getNextLetter();
+			}
 		}
 	}
 
