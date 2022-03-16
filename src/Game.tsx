@@ -854,6 +854,7 @@ export const Game = () => {
 
 			return;
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const changeHand = () => {
