@@ -14,7 +14,7 @@ export const Menu = (props: MenuProps) => {
 		<>
 			<h2>Valikko</h2>
 			<div className='menu'>
-				<button onClick={newGame}>Uusi peli</button>
+				<button onClick={() => newGame()}>Uusi peli</button>
 				<button onClick={toggleInstructionsPopover}>Näytä ohjeet</button>
 				<button onClick={changeHand} disabled={!canChangeHand}>
 					Vaihda käsi
