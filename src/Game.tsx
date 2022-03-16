@@ -835,13 +835,18 @@ export const Game = () => {
 			return;
 		}
 		if (!urlSeed) {
+			if (seed) {
+				navigateTo(seed);
+
+				return;
+			}
 			newGame();
 
 			return;
 		}
 
 		initGame(urlSeed);
-	}, [initGame, seed, setSeed, urlSeed, currentAmount, initDone, playedCells, newGame, fillHand]);
+	}, [initGame, seed, setSeed, urlSeed, currentAmount, initDone, playedCells, newGame, fillHand, navigateTo, hand]);
 
 	// useEffect(() => {
 	// 	let letterBag;
