@@ -47,8 +47,6 @@ export const Game = () => {
 	const { seed: urlSeed } = useParams();
 	const [seed, setSeed] = useLocalStorage<string | undefined>("seed", undefined);
 
-	console.log({ seed, urlSeed });
-
 	const isBoardEmpty = useMemo(() => {
 		for (let i = 0, len = boardCells.length; i < len; i++) {
 			const row = boardCells[i];
@@ -391,7 +389,6 @@ export const Game = () => {
 
 	const fillHand = useCallback(
 		(existingHand: ITile[], letterBagParam: LetterBag | undefined = letterBag) => {
-			console.log("filling hand", { oldHand: hand });
 			if (!letterBagParam) return;
 
 			const newHand = existingHand.slice();
@@ -405,7 +402,6 @@ export const Game = () => {
 
 				newHand.push({ letter: newLetter });
 			}
-			console.log("filling hand", { newHand });
 			setHand(newHand);
 		},
 		[letterBag, setHand, hand]
@@ -823,13 +819,8 @@ export const Game = () => {
 	}, [navigateTo]);
 
 	useEffect(() => {
-		console.log({ seed, urlSeed });
-
 		if (urlSeed === seed && seed) {
-			console.log("seed and urlSeed match :)");
-
 			if (!initDone) {
-				console.log("init not done so do", hand);
 				setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
 				const letterBag = new LetterBag(seed, currentAmount);
 
@@ -837,23 +828,18 @@ export const Game = () => {
 					fillHand([], letterBag);
 				}
 
-				console.log({ seed, currentAmount, letterBag });
-
 				setLetterBag(letterBag);
 				setInitDone(true);
 			}
 
 			return;
 		}
-		console.log("seed and urlSeed do not match :(");
 		if (!urlSeed) {
-			console.log("generating new url");
 			newGame();
 
 			return;
 		}
 
-		console.log("init game with seed from url");
 		initGame(urlSeed);
 	}, [initGame, seed, setSeed, urlSeed, currentAmount, initDone, playedCells, newGame, fillHand]);
 
@@ -987,8 +973,6 @@ export const Game = () => {
 	const updateLetterAmounts = useCallback(() => {
 		if (initDone) {
 			const { currentAmount: current, amountOfEachLetter: amounts } = letterBag?.getLetterAmounts() || { currentAmount: null, amountOfEachLetter: null };
-
-			console.log({ current, amounts });
 
 			setCurrentAmount(current);
 			setAmountOfEachLetter(amounts);
