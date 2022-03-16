@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, HashRouter } from "react-router-dom";
 
 import { Game } from "./Game";
 
@@ -8,12 +8,12 @@ export const SHOW_HIGHSCORES = 5;
 
 function App() {
 	return (
-		<Router basename={process.env.PUBLIC_URL}>
+		<HashRouter>
 			<Routes>
 				<Route path='/' element={<Game />} />
 				<Route path='/:seed' element={<Game />} />
 			</Routes>
-		</Router>
+		</HashRouter>
 	);
 }
 

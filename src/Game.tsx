@@ -36,16 +36,18 @@ export const Game = () => {
 	const [hand, setHand] = useLocalStorage<ITile[]>("hand", []);
 	const [boardCells, setBoardCells] = useState<IBoardCell[][]>([[]]);
 	const [turns, setTurns] = useLocalStorage<ITurn[]>("turns", []);
-	const [startAmount, setStartAmount] = useLocalStorage<number | undefined>("startAmount", undefined);
-	const [currentAmount, setCurrentAmount] = useLocalStorage<number | undefined>("currentAmount", undefined);
-	const [amountOfEachLetter, setAmountOfEachLetter] = useLocalStorage<ILetterAmounts | undefined>("amountOfEachLetter", undefined);
+	const [currentAmount, setCurrentAmount] = useLocalStorage<number | null>("currentAmount", null);
+	const [amountOfEachLetter, setAmountOfEachLetter] = useLocalStorage<ILetterAmounts | null>("amountOfEachLetter", null);
 	const [gameEnded, setGameEnded] = useLocalStorage("hameEnded", false);
 	const [showInstructions, setShowInstruction] = useState(false);
+	const [initDone, setInitDone] = useState(false);
 	const instructionsRef = useRef<HTMLDivElement>(null);
 	const appRef = useRef<HTMLDivElement>(null);
 
 	const { seed: urlSeed } = useParams();
 	const [seed, setSeed] = useLocalStorage<string | undefined>("seed", undefined);
+
+	console.log({ seed, urlSeed });
 
 	const isBoardEmpty = useMemo(() => {
 		for (let i = 0, len = boardCells.length; i < len; i++) {
@@ -388,13 +390,14 @@ export const Game = () => {
 	}, []);
 
 	const fillHand = useCallback(
-		(existingHand: ITile[]) => {
-			if (!letterBag) return;
+		(existingHand: ITile[], letterBagParam: LetterBag | undefined = letterBag) => {
+			console.log("filling hand", { oldHand: hand });
+			if (!letterBagParam) return;
 
 			const newHand = existingHand.slice();
 
 			for (let i = newHand.length; i < HAND_SIZE; i++) {
-				const newLetter = letterBag.getNextLetter();
+				const newLetter = letterBagParam.getNextLetter();
 
 				if (newLetter === null) {
 					break;
@@ -402,10 +405,10 @@ export const Game = () => {
 
 				newHand.push({ letter: newLetter });
 			}
-
+			console.log("filling hand", { newHand });
 			setHand(newHand);
 		},
-		[letterBag, setHand]
+		[letterBag, setHand, hand]
 	);
 
 	const removePlayedTilesFromHandAndFill = useCallback(() => {
@@ -800,62 +803,104 @@ export const Game = () => {
 		[navigate]
 	);
 
-	const newGame = useCallback(
-		(newSeed?: string) => {
+	const initGame = useCallback(
+		(newSeed: string) => {
 			setBoardCells(setSpecialCells(createBoard(BOARD_SIZE)));
-			const seed = newSeed || generateSeed();
-			setSeed(seed);
-			const letterBag = new LetterBag(seed);
-			setLetterBag(letterBag);
+			setSeed(newSeed);
 			setHand([]);
 			setTurns([]);
 			setPlayedCells([]);
 			setGameEnded(false);
-			setStartAmount(undefined);
-			setCurrentAmount(undefined);
-			setAmountOfEachLetter(undefined);
+			setCurrentAmount(0);
+			setAmountOfEachLetter(null);
+			setInitDone(false);
 		},
-		[setGameEnded, setHand, setPlayedCells, setSeed, setTurns, setAmountOfEachLetter, setCurrentAmount, setStartAmount]
+		[setGameEnded, setHand, setPlayedCells, setSeed, setTurns, setAmountOfEachLetter, setCurrentAmount]
 	);
 
-	useEffect(() => {
-		let letterBag;
+	const newGame = useCallback(() => {
+		navigateTo(generateSeed());
+	}, [navigateTo]);
 
-		if (!urlSeed && !seed) {
+	useEffect(() => {
+		console.log({ seed, urlSeed });
+
+		if (urlSeed === seed && seed) {
+			console.log("seed and urlSeed match :)");
+
+			if (!initDone) {
+				console.log("init not done so do", hand);
+				setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
+				const letterBag = new LetterBag(seed, currentAmount);
+
+				if (hand.length === 0) {
+					fillHand([], letterBag);
+				}
+
+				console.log({ seed, currentAmount, letterBag });
+
+				setLetterBag(letterBag);
+				setInitDone(true);
+			}
+
+			return;
+		}
+		console.log("seed and urlSeed do not match :(");
+		if (!urlSeed) {
+			console.log("generating new url");
 			newGame();
 
 			return;
 		}
 
-		if (urlSeed && !seed) {
-			newGame(urlSeed);
-			return;
-		}
+		console.log("init game with seed from url");
+		initGame(urlSeed);
+	}, [initGame, seed, setSeed, urlSeed, currentAmount, initDone, playedCells, newGame, fillHand]);
 
-		if (!urlSeed && seed) {
-			setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
-			letterBag = new LetterBag(seed, currentAmount, startAmount);
-			setLetterBag(letterBag);
-			navigateTo(seed);
-			return;
-		}
+	// useEffect(() => {
+	// 	let letterBag;
 
-		if (urlSeed !== seed && urlSeed) {
-			newGame(urlSeed);
+	// 	if (initDone) return;
 
-			return;
-		}
+	// 	if (!urlSeed && !seed) {
+	// 		newGame();
 
-		if (urlSeed === seed && seed) {
-			setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
-			letterBag = new LetterBag(seed, currentAmount, startAmount);
-			setLetterBag(letterBag);
-			navigateTo(seed);
+	// 		setInitDone(true);
+	// 		return;
+	// 	}
 
-			return;
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	// 	if (urlSeed && !seed) {
+	// 		newGame(urlSeed);
+	// 		setInitDone(true);
+	// 		return;
+	// 	}
+
+	// 	if (!urlSeed && seed) {
+	// 		setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
+	// 		letterBag = new LetterBag(seed, currentAmount, startAmount);
+	// 		setLetterBag(letterBag);
+	// 		navigateTo(seed);
+	// 		setInitDone(true);
+	// 		return;
+	// 	}
+
+	// 	if (urlSeed !== seed && urlSeed) {
+	// 		newGame(urlSeed);
+	// 		setInitDone(true);
+
+	// 		return;
+	// 	}
+
+	// 	if (urlSeed === seed && seed) {
+	// 		setBoardCells(setPlayedCellsToBoard(setSpecialCells(createBoard(BOARD_SIZE)), playedCells));
+	// 		letterBag = new LetterBag(seed, currentAmount, startAmount);
+	// 		setLetterBag(letterBag);
+	// 		navigateTo(seed);
+	// 		setInitDone(true);
+
+	// 		return;
+	// 	}
+	// }, [urlSeed, initDone, navigateTo]);
 
 	const changeHand = () => {
 		const result = true; //window.confirm("Menetät kädessäsi olevien kirjainten pisteiden määrän verran pisteitä. Haluatko vaihtaa kaikki kädessäsi olevat kirjaimet?");
@@ -877,7 +922,7 @@ export const Game = () => {
 	};
 
 	const endGame = () => {
-		if (currentAmount === undefined || currentAmount > 0) return;
+		if (currentAmount === null || currentAmount < 99) return;
 
 		let lostPoints = 0;
 		let changedLetters = [];
@@ -929,24 +974,30 @@ export const Game = () => {
 		}
 	};
 
-	useEffect(() => {
-		if (seed) {
-			navigateTo(seed);
+	// useEffect(() => {
+	// 	if (initDone && seed) {
+	// 		navigateTo(seed);
+	// 	}
+	// }, [navigateTo, seed, initDone]);
+
+	// useEffect(() => {
+	// 	fillHand(hand);
+	// }, [letterBag]);
+
+	const updateLetterAmounts = useCallback(() => {
+		if (initDone) {
+			const { currentAmount: current, amountOfEachLetter: amounts } = letterBag?.getLetterAmounts() || { currentAmount: null, amountOfEachLetter: null };
+
+			console.log({ current, amounts });
+
+			setCurrentAmount(current);
+			setAmountOfEachLetter(amounts);
 		}
-	}, [navigateTo, seed]);
+	}, [letterBag, setCurrentAmount, setAmountOfEachLetter, initDone]);
 
 	useEffect(() => {
-		fillHand(hand);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [letterBag]);
-
-	useEffect(() => {
-		const { startAmount: start, currentAmount: current, amountOfEachLetter: amounts } = letterBag?.getLetterAmounts() || {};
-
-		setStartAmount(start);
-		setCurrentAmount(current);
-		setAmountOfEachLetter(amounts);
-	}, [letterBag, hand, setStartAmount, setCurrentAmount, setAmountOfEachLetter]);
+		updateLetterAmounts();
+	}, [hand]);
 
 	return (
 		<div className='app' ref={appRef}>
@@ -956,11 +1007,11 @@ export const Game = () => {
 			</div>
 			<GameArea
 				pointShteet={<PointSheet turns={turns} />}
-				info={<Info startAmount={startAmount} currentAmount={currentAmount} amountOfEachLetter={amountOfEachLetter} />}
+				info={<Info currentAmount={currentAmount} amountOfEachLetter={amountOfEachLetter} />}
 				board={<Board tileChanged={tileChanged} direction={direction} boardCells={boardCells} moveFocus={moveFocus} />}
 				hand={<Hand hand={hand} />}
 				highscoreBoard={<HighscoreBoard highscores={highscores} />}
-				menu={<Menu toggleInstructionsPopover={toggleInstructionsPopover} newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 0 && !gameEnded} canChangeHand={(currentAmount || 0) > 0} />}
+				menu={<Menu toggleInstructionsPopover={toggleInstructionsPopover} newGame={newGame} changeHand={changeHand} endGame={endGame} canEndGame={currentAmount === 99 && !gameEnded} canChangeHand={(currentAmount || 0) < 99} />}
 			/>
 		</div>
 	);

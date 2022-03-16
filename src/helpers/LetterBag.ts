@@ -44,14 +44,14 @@ export class LetterBag {
 	private random: PRNG;
 	private amountOfEachLetter: ILetterAmounts;
 
-	constructor(seed?: string, currentAmount?: number, startAmount?: number) {
+	constructor(seed?: string, currentAmount?: number | null) {
 		this.random = seedrandom(seed);
 		this.letterBag = this.createBag();
 		this.amountOfLettersAtBeginning = this.letterBag.length;
 		this.amountOfEachLetter = JSON.parse(JSON.stringify(letterAmounts)); // Deep clone object
 
-		if (startAmount !== undefined && currentAmount !== undefined) {
-			for (let i = 0, len = startAmount - currentAmount; i < len; i++) {
+		if (typeof currentAmount === "number") {
+			for (let i = 0, len = currentAmount; i < len; i++) {
 				this.getNextLetter();
 			}
 		}
@@ -83,8 +83,8 @@ export class LetterBag {
 		return shuffledLetterBag;
 	}
 
-	public getLetterAmounts(): { currentAmount: number; startAmount: number; amountOfEachLetter: ILetterAmounts } {
-		return { currentAmount: this.letterBag.length, startAmount: this.amountOfLettersAtBeginning, amountOfEachLetter: this.amountOfEachLetter };
+	public getLetterAmounts(): { currentAmount: number; amountOfEachLetter: ILetterAmounts } {
+		return { currentAmount: this.amountOfLettersAtBeginning - this.letterBag.length, amountOfEachLetter: this.amountOfEachLetter };
 	}
 
 	public getLetters() {

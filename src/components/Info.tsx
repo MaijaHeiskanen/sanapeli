@@ -3,13 +3,12 @@ import { TableHeaderRow } from "./TableHeaderRow";
 import { TableRow } from "./TableRow";
 
 type InfoProps = {
-	startAmount: number | undefined;
-	currentAmount: number | undefined;
-	amountOfEachLetter: ILetterAmounts | undefined;
+	currentAmount: number | null;
+	amountOfEachLetter: ILetterAmounts | null;
 };
 
 export const Info = (props: InfoProps) => {
-	const { startAmount, currentAmount, amountOfEachLetter } = props;
+	const { currentAmount, amountOfEachLetter } = props;
 	const letters = Object.keys(amountOfEachLetter || {});
 	const amounts = [];
 	const rows = [];
@@ -30,7 +29,7 @@ export const Info = (props: InfoProps) => {
 		<>
 			<h2>Kirjainpussi</h2>
 			<div className='info'>
-				<div className='letters'>{`${currentAmount} / ${startAmount} kirjainta pussissa`}</div>
+				<div className='letters'>{`${99 - (currentAmount ?? 0)} / ${"99"} kirjainta pussissa`}</div>
 
 				<table className='table letter-amounts'>
 					<tbody>{rows}</tbody>
