@@ -942,7 +942,8 @@ export const Game = () => {
 				const highscore = newHighscores[i];
 
 				if (newScore.points > highscore.points) {
-					newHighscores.splice(i, 1, newScore);
+					newHighscores.splice(i, 0, newScore);
+					newHighscores.pop();
 
 					break;
 				}
