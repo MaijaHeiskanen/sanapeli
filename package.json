@@ -5,13 +5,13 @@
   "type": "module",
   "homepage": "https://maijaheiskanen.github.io/sanapeli/",
   "dependencies": {
-    "classnames": "^2.3.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "5.0.0",
-    "seedrandom": "^3.0.5",
-    "web-vitals": "^2.1.0",
-    "react-router-dom": "^6.2.2"
+    "classnames": "2.3.1",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "react-scripts": "5.0.1",
+    "seedrandom": "3.0.5",
+    "web-vitals": "2.1.4",
+    "react-router-dom": "6.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -39,17 +39,17 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.14.1",
-    "@testing-library/react": "^12.0.0",
-    "@testing-library/user-event": "^13.2.1",
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.7.13",
-    "@types/react": "^17.0.20",
-    "@types/react-dom": "^17.0.9",
-    "@types/seedrandom": "^3.0.2",
-    "gh-pages": "^3.2.3",
-    "react-router-dom": "^6.2.2",
-    "sass": "^1.49.9",
-    "typescript": "^4.4.2"
+    "@testing-library/jest-dom": "5.16.4",
+    "@testing-library/react": "13.2.0",
+    "@testing-library/user-event": "14.2.0",
+    "@types/jest": "27.5.1",
+    "@types/node": "17.0.35",
+    "@types/react": "18.0.9",
+    "@types/react-dom": "18.0.5",
+    "@types/seedrandom": "3.0.2",
+    "gh-pages": "4.0.0",
+    "react-router-dom": "6.3.0",
+    "sass": "1.52.1",
+    "typescript": "4.7.2"
   }
 }
