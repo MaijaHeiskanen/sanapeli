@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/sanapeli/static/css/main.68e72569.css",
+    "main.js": "/sanapeli/static/js/main.9dd54768.js",
+    "static/js/787.c0ec99fe.chunk.js": "/sanapeli/static/js/787.c0ec99fe.chunk.js",
+    "index.html": "/sanapeli/index.html",
+    "main.68e72569.css.map": "/sanapeli/static/css/main.68e72569.css.map",
+    "main.9dd54768.js.map": "/sanapeli/static/js/main.9dd54768.js.map",
+    "787.c0ec99fe.chunk.js.map": "/sanapeli/static/js/787.c0ec99fe.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.68e72569.css",
+    "static/js/main.9dd54768.js"
+  ]
+}
