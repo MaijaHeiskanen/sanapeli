@@ -1,78 +1,120 @@
+import { useEffect, useRef } from "react";
 import { ITurn } from "../react-app-env";
 import { TableHeaderRow } from "./TableHeaderRow";
 import { TableRow } from "./TableRow";
 
 interface PointSheetProps {
-	turns: ITurn[];
+    turns: ITurn[];
 }
 
 export const PointSheet = (props: PointSheetProps) => {
-	const { turns } = props;
-	let totalPoints = 0;
-	let totalWords = 0;
-	const rows = [];
+    const summaryRowRef = useRef<HTMLTableRowElement>(null);
+    let rowCountRef = useRef(0);
+    const { turns } = props;
+    let totalPoints = 0;
+    let totalWords = 0;
+    const rows: JSX.Element[] = [];
 
-	rows.push(<TableHeaderRow key={"header"} cells={["Vuoro", "Pisteet", "Sanat"]} className='header' />);
+    useEffect(() => {
+        if (summaryRowRef && rowCountRef.current !== rows.length) {
+            summaryRowRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+            });
 
-	turns.forEach((turn, index) => {
-		const { points, playedWords, changingTiles } = turn;
+            rowCountRef.current = rows.length;
+        }
+    }, [rows]);
 
-		totalPoints += points;
+    rows.push(
+        <TableHeaderRow
+            key={"header"}
+            cells={["Vuoro", "Pisteet", "Sanat"]}
+            className="header"
+        />
+    );
 
-		const wordLinks = [];
-		const word = playedWords[0];
+    turns.forEach((turn, index) => {
+        const { points, playedWords, changingTiles } = turn;
 
-		if (word) {
-			if (!changingTiles) {
-				totalWords += 1;
-			}
+        totalPoints += points;
 
-			wordLinks.push(
-				<span className='word' key={word}>
-					{changingTiles ? (
-						word
-					) : (
-						<a className='link' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}>
-							{word}
-						</a>
-					)}
-				</span>,
-				", "
-			);
-		}
+        const wordLinks = [];
+        const word = playedWords[0];
 
-		for (let i = 1, len = playedWords.length; i < len; i++) {
-			const word = playedWords[i];
+        if (word) {
+            if (!changingTiles) {
+                totalWords += 1;
+            }
 
-			if (!changingTiles) {
-				totalWords += 1;
-			}
+            wordLinks.push(
+                <span className="word" key={word}>
+                    {changingTiles ? (
+                        word
+                    ) : (
+                        <a
+                            className="link"
+                            target={"_blank"}
+                            rel="noreferrer"
+                            href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}
+                        >
+                            {word}
+                        </a>
+                    )}
+                </span>,
+                ", "
+            );
+        }
 
-			if (changingTiles) {
-				wordLinks.push(word, ", ");
-			} else {
-				wordLinks.push(
-					<a key={word} className='word' target={"_blank"} rel='noreferrer' href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}>
-						{word}
-					</a>,
-					", "
-				);
-			}
-		}
+        for (let i = 1, len = playedWords.length; i < len; i++) {
+            const word = playedWords[i];
 
-		wordLinks.splice(wordLinks.length - 1, 1);
+            if (!changingTiles) {
+                totalWords += 1;
+            }
 
-		rows.push(<TableRow key={index} cells={[index, points, wordLinks]} />);
-	});
+            if (changingTiles) {
+                wordLinks.push(word, ", ");
+            } else {
+                wordLinks.push(
+                    <a
+                        key={word}
+                        className="word"
+                        target={"_blank"}
+                        rel="noreferrer"
+                        href={`https://www.kielitoimistonsanakirja.fi/#/${word.toLowerCase()}`}
+                    >
+                        {word}
+                    </a>,
+                    ", "
+                );
+            }
+        }
 
-	rows.push(<TableHeaderRow key={"footer"} cells={["Yht.", totalPoints, `${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`]} className='footer' />);
+        wordLinks.splice(wordLinks.length - 1, 1);
 
-	return (
-		<>
-			<h2>Pisteet</h2>
-			<table className='table pointsheet'>
-				<tbody>{rows}</tbody>
-			</table>
-		</>
-	);
+        rows.push(<TableRow key={index} cells={[index, points, wordLinks]} />);
+    });
+
+    rows.push(
+        <TableHeaderRow
+            key={"footer"}
+            cells={[
+                "Yht.",
+                totalPoints,
+                `${totalWords} ${totalWords === 1 ? "sana" : "sanaa"}`,
+            ]}
+            className="footer"
+            ref={summaryRowRef}
+        />
+    );
+
+    return (
+        <>
+            <h2>Pisteet</h2>
+            <table className="table pointsheet">
+                <tbody>{rows}</tbody>
+            </table>
+        </>
+    );
 };
